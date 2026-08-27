@@ -33,7 +33,7 @@ export default function Home() {
   };
 
   const handleInspectHeroKit = () => {
-    const flagship = JERSEYS_DATA[0]; // ARCHETYPE I: ECLIPSE
+    const flagship = JERSEYS_DATA[0]; // Flagship In-Stock Kit
     handleOpenQuickView(flagship);
   };
 

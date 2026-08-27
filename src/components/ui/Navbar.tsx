@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AudioToggle } from "./AudioToggle";
-import { ShoppingBag, Menu, X, Shield, ArrowUpRight } from "lucide-react";
+import { ShoppingBag, Menu, X, Shield, ArrowUpRight, Sparkles } from "lucide-react";
 import { ACTS_DATA } from "@/data/jerseys";
 
 interface NavbarProps {
@@ -38,11 +38,11 @@ export function Navbar({ cartCount = 0, onOpenCart }: NavbarProps) {
               <Shield className="h-4 w-4 text-amber-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <div className="flex flex-col">
-              <span className="font-sans text-sm font-black tracking-[0.25em] text-white">
-                ARCHETYPE
+              <span className="font-sans text-sm font-black tracking-[0.2em] text-white">
+                JERSEY VERSE
               </span>
               <span className="font-mono text-[9px] tracking-widest text-zinc-400">
-                ATELIER // 2026
+                OFFICIAL STOCK // 2026
               </span>
             </div>
           </a>

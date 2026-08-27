@@ -89,7 +89,7 @@ export function QuickViewModal({
                 <JerseySilhouette
                   primaryColor={jersey.dominantColor}
                   accentColor={jersey.accentColor}
-                  number={jersey.id.includes("01") ? "01" : jersey.id.includes("02") ? "02" : jersey.id.includes("03") ? "03" : "04"}
+                  number="10"
                   className="w-full h-full max-h-[300px]"
                 />
               )}
@@ -106,7 +106,7 @@ export function QuickViewModal({
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 font-mono text-[10px] uppercase tracking-widest text-amber-300">
                 <Sparkles className="h-3 w-3" />
-                <span>ARCHETYPE STUDIO SPEC</span>
+                <span>JERSEY VERSE SPEC SHEET</span>
               </div>
 
               <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-white">

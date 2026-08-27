@@ -133,7 +133,7 @@ const MANTRA_SUGGESTIONS = [
   "VANGUARD",
   "SANCTUARY",
   "NO CEILING",
-  "ARCHETYPE",
+  "JERSEY VERSE",
 ];
 
 const DEFAULT_CONFIG: CustomKitConfig = {
@@ -198,15 +198,15 @@ export function StudioConfigurator({ onAddBespokeToBag }: StudioConfiguratorProp
 
     const bespokeProduct: JerseyProduct = {
       id: `bespoke-${Date.now()}`,
-      code: `ARC-BESPOKE/${config.jerseyNumber}`,
-      name: `ARCHETYPE BESPOKE: ${config.playerName}`,
+      code: `JV-BESPOKE/${config.jerseyNumber}`,
+      name: `JERSEY VERSE BESPOKE: ${config.playerName}`,
       subtitle: `${config.colorwayName} // ${config.weaveName}`,
       price: 215,
       edition: `Custom Tailored — Serial #${config.jerseyNumber}`,
       colorway: config.colorwayName,
       dominantColor: config.primaryColor,
       accentColor: config.accentColor,
-      image: "/images/hero_jersey.jpg",
+      image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
       fallbackGradient: "from-zinc-950 via-zinc-900 to-amber-950/40",
       weightGsm: config.weaveGsm,
       fabric: config.weaveName,

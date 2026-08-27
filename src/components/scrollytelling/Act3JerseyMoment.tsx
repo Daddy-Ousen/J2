@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { Sparkles, Eye, Zap, ShieldCheck } from "lucide-react";
+import { JERSEYS_DATA } from "@/data/jerseys";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -24,6 +25,8 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
   const textStageRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const [hasFlashed, setHasFlashed] = useState(false);
+
+  const heroJersey = JERSEYS_DATA[0];
 
   useGSAP(
     () => {
@@ -186,24 +189,24 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
             onClick={onInspectHeroKit}
             title="Click to inspect kit details"
           >
-            {/* Real High-Res Jersey Image */}
+            {/* Real High-Res In-Stock Jersey Image */}
             <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] border border-white/10 bg-zinc-900/60 backdrop-blur-sm group-hover:border-amber-500/50 transition-colors">
               <Image
-                src="/images/hero_jersey.jpg"
-                alt="ARCHETYPE I: ECLIPSE - The Mantle"
+                src={heroJersey.image}
+                alt={heroJersey.name}
                 fill
                 priority
                 sizes="(max-width: 768px) 300px, 420px"
-                className="object-cover object-center filter contrast-[1.1] brightness-[0.95] group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="object-cover object-center filter contrast-[1.08] brightness-[0.98] group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-black/30" />
 
               {/* Floating Quick Action Overlay */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-lg border border-white/10 bg-black/60 px-3 py-1.5 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="font-mono text-[10px] text-zinc-300">
-                  ARCHETYPE I // ECLIPSE
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-lg border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="font-mono text-[10px] text-zinc-200 truncate pr-2 font-bold">
+                  {heroJersey.name}
                 </span>
-                <span className="flex items-center gap-1 font-mono text-[10px] text-amber-400">
+                <span className="flex items-center gap-1 font-mono text-[10px] text-amber-400 flex-shrink-0">
                   <Eye className="h-3 w-3" /> INSPECT
                 </span>
               </div>
@@ -211,10 +214,10 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
 
             {/* Corner Decorative Tech Notations */}
             <div className="absolute -top-3 -left-3 font-mono text-[9px] text-zinc-500 uppercase tracking-widest hidden sm:block">
-              // SPEC: 240GSM
+              // SPEC: {heroJersey.weightGsm}GSM
             </div>
             <div className="absolute -bottom-3 -right-3 font-mono text-[9px] text-amber-500/80 uppercase tracking-widest hidden sm:block">
-              // SERIAL: ARC-01
+              // {heroJersey.code}
             </div>
           </div>
 
@@ -247,7 +250,7 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
                 className="inline-flex items-center gap-2 rounded-full border border-amber-500/50 bg-amber-500/20 px-4 py-1.5 text-xs font-mono font-bold tracking-widest text-amber-300 hover:bg-amber-500 hover:text-black transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)]"
               >
                 <Zap className="h-3.5 w-3.5" />
-                EXPLORE FLAGSHIP SPEC SHEET
+                EXPLORE IN-STOCK SPEC SHEET
               </button>
             </div>
           </div>

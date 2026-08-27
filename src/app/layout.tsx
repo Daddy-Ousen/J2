@@ -13,15 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ARCHETYPE // The Mantle of Conviction",
+  title: "Jersey verse // The Mantle of Conviction",
   description:
-    "A cinematic brand experience exploring the emotional weight of a jersey — belief, struggle, and transcendence.",
+    "A cinematic brand experience exploring the emotional weight of a jersey — belief, struggle, and transcendence. Official in-stock matchday kits & bespoke atelier chassis.",
   keywords: [
-    "jersey",
+    "Jersey verse",
+    "Jerseyverse",
+    "football jerseys",
+    "authentic matchday kits",
     "sportswear",
-    "football kit",
-    "athletic apparel",
-    "archetype",
     "scrollytelling",
   ],
   icons: {

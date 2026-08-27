@@ -174,11 +174,11 @@ export function JerseySilhouette({
           fill="#ffffff"
           opacity="0.85"
           fontFamily="monospace"
-          fontSize="14"
+          fontSize="12"
           fontWeight="bold"
-          letterSpacing="0.3em"
+          letterSpacing="0.25em"
         >
-          ARCHETYPE
+          JERSEY VERSE
         </text>
 
         {/* Jersey Number */}

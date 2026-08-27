@@ -472,7 +472,7 @@ export function InteractiveJerseyCanvas({
                 letterSpacing="0.2em"
                 opacity="0.8"
               >
-                // ARCHETYPE ATELIER //
+                // JERSEY VERSE ATELIER //
               </text>
 
               {/* Arched Player Name / Mantra */}
@@ -528,7 +528,7 @@ export function InteractiveJerseyCanvas({
                 fontFamily="monospace"
                 fontWeight="bold"
               >
-                ARC
+                JV
               </text>
             </g>
           )}
@@ -574,11 +574,11 @@ export function InteractiveJerseyCanvas({
                   textAnchor="middle"
                   fill="#000000"
                   fontFamily="monospace"
-                  fontSize="10"
+                  fontSize="9"
                   fontWeight="bold"
-                  letterSpacing="0.2em"
+                  letterSpacing="0.15em"
                 >
-                  ARCHETYPE
+                  JERSEY VERSE
                 </text>
               </g>
 

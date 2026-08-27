@@ -7,7 +7,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { JERSEYS_DATA } from "@/data/jerseys";
 import { JerseyProduct, CustomKitConfig } from "@/types";
-import { JerseySilhouette } from "../ui/JerseySilhouette";
 import { StudioConfigurator } from "../configurator/StudioConfigurator";
 import {
   Sparkles,
@@ -42,10 +41,14 @@ export function Act4ProductCTA({
   const configuratorRef = useRef<HTMLDivElement>(null);
   const manifestoRef = useRef<HTMLDivElement>(null);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({
-    "kit-01-eclipse": "M",
-    "kit-02-solstice": "L",
-    "kit-03-genesis": "M",
-    "kit-04-aurora": "M",
+    "kit-atm-volt": "M",
+    "kit-rma-third": "L",
+    "kit-ars-away": "M",
+    "kit-fcb-blau": "M",
+    "kit-nas-heritage": "L",
+    "kit-mun-red": "M",
+    "kit-acm-away": "M",
+    "kit-juv-home": "L",
   });
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
   const [emailInput, setEmailInput] = useState("");
@@ -75,7 +78,7 @@ export function Act4ProductCTA({
           opacity: 1,
           y: 0,
           duration: 0.9,
-          stagger: 0.15,
+          stagger: 0.1,
           ease: "power3.out",
           scrollTrigger: {
             trigger: gridRef.current,
@@ -157,23 +160,23 @@ export function Act4ProductCTA({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-amber-300">
               <Sparkles className="h-3 w-3" />
-              <span>ACT IV // THE ARMOR</span>
+              <span>ACT IV // IN-STOCK REPOSITORY</span>
             </div>
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white">
-              The 2026 Capsule.
+              Available Matchday Kits.
             </h2>
           </div>
           <p className="max-w-md font-mono text-xs leading-relaxed text-zinc-400">
-            Four bespoke garments crafted with obsessive textile discipline. Serialized, numbered,
-            and engineered for immortality on the pitch.
+            Real matchday armor currently in stock at <span className="text-amber-400 font-bold">Jersey verse</span>.
+            Serialized, authentic, and ready for immediate courier dispatch.
           </p>
         </div>
       </div>
 
-      {/* Product Grid (4 Flagship Jerseys) */}
+      {/* Product Grid (Real In-Stock Jerseys) */}
       <div
         ref={gridRef}
-        className="relative z-10 mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="relative z-10 mx-auto max-w-7xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {JERSEYS_DATA.map((jersey, idx) => {
           const isAdded = addedIds[jersey.id];
@@ -187,31 +190,24 @@ export function Act4ProductCTA({
               {/* Top Card Badge & Edition */}
               <div className="flex items-center justify-between font-mono text-[10px] text-zinc-400 pb-3 border-b border-white/5">
                 <span className="text-amber-400 font-bold">{jersey.code}</span>
-                <span>0{idx + 1} / 04</span>
+                <span className="text-emerald-400 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  IN STOCK
+                </span>
               </div>
 
-              {/* Product Visual Container with Hover Zoom */}
-              <div className="relative my-4 flex h-[260px] w-full items-center justify-center rounded-xl overflow-hidden bg-black/60 border border-white/5 group-hover:border-white/10 transition-all p-2">
-                {idx === 0 ? (
-                  <div className="relative w-full h-full rounded-lg overflow-hidden">
-                    <Image
-                      src={jersey.image}
-                      alt={jersey.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      className="object-cover object-center filter contrast-[1.08] transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-black/30" />
-                  </div>
-                ) : (
-                  <JerseySilhouette
-                    primaryColor={jersey.dominantColor}
-                    accentColor={jersey.accentColor}
-                    number={`0${idx + 1}`}
-                    pattern={idx === 1 ? "mesh" : idx === 2 ? "geometric" : "stripes"}
-                    className="w-full h-full max-h-[240px]"
+              {/* Real Product Image with Hover Zoom */}
+              <div className="relative my-4 flex h-[280px] w-full items-center justify-center rounded-xl overflow-hidden bg-black/60 border border-white/5 group-hover:border-white/10 transition-all p-1">
+                <div className="relative w-full h-full rounded-lg overflow-hidden">
+                  <Image
+                    src={jersey.image}
+                    alt={jersey.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover object-center filter contrast-[1.06] transition-transform duration-500 group-hover:scale-105"
                   />
-                )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-black/20" />
+                </div>
 
                 {/* Quick View Button Hover Overlay */}
                 <button
@@ -226,11 +222,11 @@ export function Act4ProductCTA({
               {/* Product Details */}
               <div className="space-y-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-sans text-lg font-bold text-white tracking-tight">
+                  <h3 className="font-sans text-sm font-bold text-white tracking-tight leading-snug line-clamp-2">
                     {jersey.name}
                   </h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="font-mono text-[11px] text-zinc-400">
+                  <div className="flex items-center justify-between mt-1.5">
+                    <p className="font-mono text-[10px] text-zinc-400 truncate max-w-[160px]">
                       {jersey.colorway}
                     </p>
                     <span className="font-mono text-sm font-bold text-amber-400">
@@ -318,7 +314,7 @@ export function Act4ProductCTA({
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-amber-300">
               <ShieldCheck className="h-3.5 w-3.5" />
-              <span>THE BELIEF MANIFESTO</span>
+              <span>THE JERSEY VERSE MANIFESTO</span>
             </div>
 
             <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
@@ -327,9 +323,8 @@ export function Act4ProductCTA({
 
             <p className="text-sm sm:text-base leading-relaxed text-zinc-300 font-light">
               Every seam, every millimeter of engineered weave, and every liquid-silicone crest is
-              designed for the solitary competitor who steps across the white line when everything is
-              at stake. When you pull on an ARCHETYPE chassis, you do not simply play. You declare who
-              you are.
+              curated for the solitary competitor who steps across the white line when everything is
+              at stake. When you pull on a <strong className="text-white">Jersey verse</strong> chassis, you do not simply play. You declare who you are.
             </p>
 
             <div className="flex items-center gap-6 font-mono text-xs text-zinc-400 pt-2">
@@ -393,7 +388,7 @@ export function Act4ProductCTA({
       {/* Luxury Footer */}
       <footer className="relative z-10 mx-auto max-w-7xl mt-24 border-t border-white/10 pt-10 flex flex-col md:flex-row items-center justify-between gap-6 font-mono text-xs text-zinc-500">
         <div className="flex items-center gap-3">
-          <span className="font-sans font-black tracking-widest text-white">ARCHETYPE</span>
+          <span className="font-sans font-black tracking-widest text-white">JERSEY VERSE</span>
           <span>© 2026 ALL RIGHTS RESERVED</span>
         </div>
 
