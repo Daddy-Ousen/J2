@@ -1,0 +1,85 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("CUSTOMER") // "ADMIN" | "CUSTOMER"
+  phone        String?
+  address      String?
+  city         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  slug          String   @unique
+  subtitle      String
+  price         Int      // In BDT (e.g. 1150)
+  originalPrice Int?     // In BDT (e.g. 1450)
+  league        String   // "Premier League" | "La Liga" | "Serie A" | "Bundesliga" | "Saudi Pro League" | "International" | "Retro"
+  club          String
+  dominantColor String   @default("#0d0f14")
+  accentColor   String   @default("#f59e0b")
+  image         String
+  weightGsm     Int      @default(240)
+  fabric        String   @default("Aero-Fit Engineered Knit")
+  badgeType     String   @default("3D Heat-pressed liquid silicone crest")
+  story         String
+  stockS        Int      @default(5)
+  stockM        Int      @default(8)
+  stockL        Int      @default(10)
+  stockXL       Int      @default(6)
+  stockXXL      Int      @default(3)
+  isFeatured    Boolean  @default(false)
+  inStock       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  orderNumber      String   @unique // e.g. "JV-92841"
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id])
+  customerName     String
+  phone            String
+  email            String?
+  address          String
+  city             String   @default("Dhaka")
+  zone             String   @default("inside_dhaka") // "inside_dhaka" | "outside_dhaka"
+  paymentMethod    String   @default("bkash") // "bkash" | "nagad"
+  senderNumber     String
+  trxId            String
+  paymentStatus    String   @default("PENDING_VERIFICATION") // "PENDING_VERIFICATION" | "VERIFIED" | "FAILED"
+  orderStatus      String   @default("PENDING") // "PENDING" | "CONFIRMED" | "PRINTING" | "DISPATCHED" | "DELIVERED" | "CANCELLED"
+  subtotal         Int
+  shippingFee      Int      @default(80)
+  customizationFee Int      @default(0)
+  discount         Int      @default(0)
+  total            Int
+  courierPartner   String?  // e.g. "Steadfast Courier" | "Pathao" | "Paperfly"
+  consignmentId    String?  // e.g. "CID-982741"
+  itemsJson        String   // Serialized array of items with size, customName, customNumber
+  adminNote        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
