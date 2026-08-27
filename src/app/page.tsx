@@ -1,0 +1,128 @@
+"use client";
+
+import React, { useState } from "react";
+import { Navbar } from "@/components/ui/Navbar";
+import { ScrollProgressBar } from "@/components/scrollytelling/ScrollProgressBar";
+import { Act1Origin } from "@/components/scrollytelling/Act1Origin";
+import { Act2Struggle } from "@/components/scrollytelling/Act2Struggle";
+import { Act3JerseyMoment } from "@/components/scrollytelling/Act3JerseyMoment";
+import { Act4ProductCTA } from "@/components/scrollytelling/Act4ProductCTA";
+import { QuickViewModal } from "@/components/ui/QuickViewModal";
+import { CartDrawer, CartItem } from "@/components/ui/CartDrawer";
+import { JERSEYS_DATA } from "@/data/jerseys";
+import { JerseyProduct } from "@/types";
+import { Check, ShoppingBag } from "lucide-react";
+
+export default function Home() {
+  const [activeModalJersey, setActiveModalJersey] = useState<JerseyProduct | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  const handleOpenQuickView = (jersey: JerseyProduct) => {
+    setActiveModalJersey(jersey);
+    setIsModalOpen(true);
+  };
+
+  const handleInspectHeroKit = () => {
+    const flagship = JERSEYS_DATA[0]; // ARCHETYPE I: ECLIPSE
+    handleOpenQuickView(flagship);
+  };
+
+  const handleAddToCart = (jersey: JerseyProduct, size: string) => {
+    setCartItems((prev) => {
+      const existingIdx = prev.findIndex(
+        (i) => i.jersey.id === jersey.id && i.size === size
+      );
+      if (existingIdx > -1) {
+        const updated = [...prev];
+        updated[existingIdx].quantity += 1;
+        return updated;
+      }
+      return [...prev, { jersey, size, quantity: 1 }];
+    });
+    showToast(`Added ${jersey.name} (Size ${size}) to your bag.`);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setCartItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+  };
+
+  const totalQuantity = cartItems.reduce((acc, i) => acc + i.quantity, 0);
+
+  return (
+    <div className="relative min-h-screen w-full bg-[#070709] text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
+      {/* Top Scrollytelling Progress Bar */}
+      <ScrollProgressBar />
+
+      {/* Global Minimalist Header */}
+      <Navbar
+        cartCount={totalQuantity}
+        onOpenCart={() => setIsCartOpen(true)}
+      />
+
+      {/* Main Scrollytelling Narrative Flow */}
+      <main className="relative w-full">
+        {/* ACT I: ORIGIN */}
+        <Act1Origin />
+
+        {/* ACT II: THE CRUCIBLE / STRUGGLE */}
+        <Act2Struggle />
+
+        {/* ACT III: THE MANTLE / JERSEY MOMENT */}
+        <Act3JerseyMoment onInspectHeroKit={handleInspectHeroKit} />
+
+        {/* ACT IV: THE ARMOR / 2026 CAPSULE & CTA */}
+        <Act4ProductCTA
+          onOpenQuickView={handleOpenQuickView}
+          onAddToCart={handleAddToCart}
+        />
+      </main>
+
+      {/* Quick View Technical Modal */}
+      <QuickViewModal
+        jersey={activeModalJersey}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToCart={handleAddToCart}
+      />
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+      />
+
+      {/* Global Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full border border-amber-500/40 bg-zinc-950/95 px-5 py-2.5 text-xs font-mono text-white shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom-5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-black">
+            <Check className="h-3 w-3 stroke-[3]" />
+          </span>
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="ml-2 flex items-center gap-1 text-amber-400 underline underline-offset-2 hover:text-amber-300"
+          >
+            <ShoppingBag className="h-3 w-3" /> View Bag
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
