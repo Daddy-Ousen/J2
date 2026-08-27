@@ -10,21 +10,21 @@ import { Act4ProductCTA } from "@/components/scrollytelling/Act4ProductCTA";
 import { QuickViewModal } from "@/components/ui/QuickViewModal";
 import { CartDrawer, CartItem } from "@/components/ui/CartDrawer";
 import { JERSEYS_DATA } from "@/data/jerseys";
-import { JerseyProduct } from "@/types";
-import { Check, ShoppingBag } from "lucide-react";
+import { JerseyProduct, CustomKitConfig } from "@/types";
+import { Check, ShoppingBag, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [activeModalJersey, setActiveModalJersey] = useState<JerseyProduct | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ title: string; isBespoke?: boolean } | null>(null);
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
+  const showToast = (title: string, isBespoke = false) => {
+    setToastMessage({ title, isBespoke });
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 3500);
   };
 
   const handleOpenQuickView = (jersey: JerseyProduct) => {
@@ -40,7 +40,7 @@ export default function Home() {
   const handleAddToCart = (jersey: JerseyProduct, size: string) => {
     setCartItems((prev) => {
       const existingIdx = prev.findIndex(
-        (i) => i.jersey.id === jersey.id && i.size === size
+        (i) => i.jersey.id === jersey.id && i.size === size && !i.customConfig
       );
       if (existingIdx > -1) {
         const updated = [...prev];
@@ -50,6 +50,14 @@ export default function Home() {
       return [...prev, { jersey, size, quantity: 1 }];
     });
     showToast(`Added ${jersey.name} (Size ${size}) to your bag.`);
+  };
+
+  const handleAddBespokeToBag = (customKit: JerseyProduct, config: CustomKitConfig) => {
+    setCartItems((prev) => [
+      ...prev,
+      { jersey: customKit, size: "M", quantity: 1, customConfig: config },
+    ]);
+    showToast(`Bespoke Kit "${config.playerName}" (#${config.jerseyNumber}) commissioned!`, true);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -84,10 +92,11 @@ export default function Home() {
         {/* ACT III: THE MANTLE / JERSEY MOMENT */}
         <Act3JerseyMoment onInspectHeroKit={handleInspectHeroKit} />
 
-        {/* ACT IV: THE ARMOR / 2026 CAPSULE & CTA */}
+        {/* ACT IV: THE ARMOR / 2026 CAPSULE & STUDIO CONFIGURATOR */}
         <Act4ProductCTA
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
+          onAddBespokeToBag={handleAddBespokeToBag}
         />
       </main>
 
@@ -112,9 +121,13 @@ export default function Home() {
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full border border-amber-500/40 bg-zinc-950/95 px-5 py-2.5 text-xs font-mono text-white shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom-5">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-black">
-            <Check className="h-3 w-3 stroke-[3]" />
+            {toastMessage.isBespoke ? (
+              <Sparkles className="h-3 w-3" />
+            ) : (
+              <Check className="h-3 w-3 stroke-[3]" />
+            )}
           </span>
-          <span>{toastMessage}</span>
+          <span>{toastMessage.title}</span>
           <button
             onClick={() => setIsCartOpen(true)}
             className="ml-2 flex items-center gap-1 text-amber-400 underline underline-offset-2 hover:text-amber-300"

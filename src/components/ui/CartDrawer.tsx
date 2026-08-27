@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { JerseyProduct } from "@/types";
-import { X, Trash2, ShieldCheck, ArrowRight, CheckCircle } from "lucide-react";
+import { JerseyProduct, CustomKitConfig } from "@/types";
+import { X, Trash2, ShieldCheck, ArrowRight, CheckCircle, Sparkles } from "lucide-react";
 
 export interface CartItem {
   jersey: JerseyProduct;
   size: string;
   quantity: number;
+  customConfig?: CustomKitConfig;
 }
 
 interface CartDrawerProps {
@@ -98,47 +99,80 @@ export function CartDrawer({
                 YOUR ARMOR BAG IS EMPTY
               </div>
               <p className="text-xs text-zinc-500 max-w-xs">
-                Explore the 2026 collection and claim your numbered kit chassis.
+                Explore the 2026 collection or configure your bespoke kit chassis.
               </p>
             </div>
           ) : (
             items.map((item, idx) => (
               <div
                 key={`${item.jersey.id}-${item.size}-${idx}`}
-                className="flex items-center gap-4 rounded-xl border border-white/5 bg-zinc-900/50 p-3.5"
+                className="flex flex-col gap-3 rounded-xl border border-white/5 bg-zinc-900/50 p-4"
               >
-                <div className="relative h-20 w-16 rounded-lg overflow-hidden border border-white/10 bg-black flex-shrink-0">
-                  <Image
-                    src={item.jersey.image}
-                    alt={item.jersey.name}
-                    fill
-                    className="object-cover"
-                  />
+                <div className="flex items-center gap-4">
+                  <div className="relative h-18 w-14 rounded-lg overflow-hidden border border-white/10 bg-black flex-shrink-0">
+                    <Image
+                      src={item.jersey.image}
+                      alt={item.jersey.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-sans text-sm font-bold text-white truncate">
+                        {item.jersey.name}
+                      </h4>
+                      {item.customConfig && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[8px] font-bold text-amber-400">
+                          <Sparkles className="h-2.5 w-2.5" /> BESPOKE
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 mt-0.5">
+                      <span>SIZE: {item.size}</span>
+                      <span>•</span>
+                      <span className="text-amber-400 font-bold">
+                        ${item.jersey.price}
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-500 mt-1">
+                      QTY: {item.quantity}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => onRemoveItem(idx)}
+                    className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                    aria-label="Remove item"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-sans text-sm font-bold text-white truncate">
-                    {item.jersey.name}
-                  </h4>
-                  <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 mt-0.5">
-                    <span>SIZE: {item.size}</span>
-                    <span>•</span>
-                    <span className="text-amber-400 font-bold">
-                      ${item.jersey.price}
-                    </span>
+                {/* Bespoke Customization Spec Tags */}
+                {item.customConfig && (
+                  <div className="rounded-lg border border-white/5 bg-black/40 p-2.5 space-y-1 font-mono text-[9px]">
+                    <div className="flex justify-between text-zinc-400">
+                      <span>NAME / MANTRA:</span>
+                      <span className="text-amber-300 font-bold">
+                        {item.customConfig.playerName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>NUMBER:</span>
+                      <span className="text-amber-300 font-bold">
+                        #{item.customConfig.jerseyNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-zinc-400">
+                      <span>WEAVE:</span>
+                      <span className="text-zinc-200">
+                        {item.customConfig.weaveName} ({item.customConfig.weaveGsm} GSM)
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-500 mt-1">
-                    QTY: {item.quantity}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => onRemoveItem(idx)}
-                  className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
-                  aria-label="Remove item"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                )}
               </div>
             ))
           )}

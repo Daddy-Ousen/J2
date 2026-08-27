@@ -6,8 +6,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { JERSEYS_DATA } from "@/data/jerseys";
-import { JerseyProduct } from "@/types";
+import { JerseyProduct, CustomKitConfig } from "@/types";
 import { JerseySilhouette } from "../ui/JerseySilhouette";
+import { StudioConfigurator } from "../configurator/StudioConfigurator";
 import {
   Sparkles,
   ShoppingBag,
@@ -18,6 +19,7 @@ import {
   Globe,
   ArrowUp,
   Layers,
+  Sliders,
 } from "lucide-react";
 
 if (typeof window !== "undefined") {
@@ -27,11 +29,17 @@ if (typeof window !== "undefined") {
 interface Act4ProductCTAProps {
   onOpenQuickView: (jersey: JerseyProduct) => void;
   onAddToCart: (jersey: JerseyProduct, size: string) => void;
+  onAddBespokeToBag?: (customKit: JerseyProduct, config: CustomKitConfig) => void;
 }
 
-export function Act4ProductCTA({ onOpenQuickView, onAddToCart }: Act4ProductCTAProps) {
+export function Act4ProductCTA({
+  onOpenQuickView,
+  onAddToCart,
+  onAddBespokeToBag,
+}: Act4ProductCTAProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const configuratorRef = useRef<HTMLDivElement>(null);
   const manifestoRef = useRef<HTMLDivElement>(null);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({
     "kit-01-eclipse": "M",
@@ -48,7 +56,6 @@ export function Act4ProductCTA({ onOpenQuickView, onAddToCart }: Act4ProductCTAP
       const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (isReduced) {
-        // Reduced motion: show items immediately
         const cards = gsap.utils.toArray<HTMLElement>(".jersey-card");
         gsap.set(cards, { opacity: 1, y: 0 });
         if (manifestoRef.current) gsap.set(manifestoRef.current, { opacity: 1, y: 0 });
@@ -111,6 +118,13 @@ export function Act4ProductCTA({ onOpenQuickView, onAddToCart }: Act4ProductCTAP
     }, 2000);
   };
 
+  const scrollToStudio = () => {
+    const el = document.getElementById("atelier-studio-configurator");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (emailInput.trim()) {
@@ -129,7 +143,7 @@ export function Act4ProductCTA({ onOpenQuickView, onAddToCart }: Act4ProductCTAP
     <div
       id="act-collection"
       ref={containerRef}
-      className="relative w-full bg-zinc-950 text-white pt-20 pb-16 px-6 sm:px-12 lg:px-20 overflow-hidden"
+      className="relative w-full bg-zinc-950 text-white pt-24 pb-16 px-6 sm:px-12 lg:px-20 overflow-hidden"
     >
       {/* Background Ambient Atmosphere */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -254,27 +268,44 @@ export function Act4ProductCTA({ onOpenQuickView, onAddToCart }: Act4ProductCTAP
                   ))}
                 </div>
 
-                {/* Action CTA: Add to Bag */}
-                <button
-                  onClick={() => handleAddFromCard(jersey)}
-                  className="w-full flex items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 py-2.5 px-4 font-mono text-[11px] font-bold tracking-wider text-white transition-all duration-200 hover:border-amber-400 hover:bg-amber-500 hover:text-black active:scale-95"
-                >
-                  {isAdded ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 stroke-[3]" />
-                      <span>SECURED TO BAG</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="h-3.5 w-3.5" />
-                      <span>ACQUIRE MANTLE</span>
-                    </>
-                  )}
-                </button>
+                {/* Action Buttons: Add to Bag + Studio Customizer trigger */}
+                <div className="space-y-2 pt-1">
+                  <button
+                    onClick={() => handleAddFromCard(jersey)}
+                    className="w-full flex items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 py-2.5 px-4 font-mono text-[11px] font-bold tracking-wider text-white transition-all duration-200 hover:border-amber-400 hover:bg-amber-500 hover:text-black active:scale-95"
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                        <span>SECURED TO BAG</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="h-3.5 w-3.5" />
+                        <span>ACQUIRE MANTLE</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={scrollToStudio}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-full border border-white/5 bg-zinc-900/60 py-1.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:border-amber-500/30 transition-all"
+                  >
+                    <Sliders className="h-3 w-3" />
+                    <span>CUSTOMIZE IN STUDIO</span>
+                  </button>
+                </div>
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FLAGSHIP INTERACTIVE STUDIO CONFIGURATOR */}
+      {/* ========================================================================= */}
+      <div id="atelier-studio-configurator" ref={configuratorRef} className="mt-28">
+        <StudioConfigurator onAddBespokeToBag={onAddBespokeToBag} />
       </div>
 
       {/* Brand Manifesto & Drop Syndicate Section */}

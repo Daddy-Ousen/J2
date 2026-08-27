@@ -27,3 +27,24 @@ export interface ActSection {
   title: string;
   subtitle: string;
 }
+
+export type ConfiguratorView = "front" | "back" | "macro" | "orbit";
+
+export interface CustomKitConfig {
+  colorwayId: string;
+  colorwayName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  textColor: string;
+  hexCode: string;
+  finish: "satin" | "matte" | "metallic";
+  playerName: string;
+  jerseyNumber: string;
+  fontFamily: "modern" | "editorial" | "tech";
+  crestFinish: "gold" | "stealth" | "prismatic";
+  weaveId: string;
+  weaveName: string;
+  weaveGsm: number;
+  weavePattern: "pique" | "jacquard" | "carbon" | "honeycomb";
+}
