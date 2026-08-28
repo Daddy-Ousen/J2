@@ -1,236 +1,223 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Volume2, VolumeX, Sparkles, Sliders } from "lucide-react";
+import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc } from "lucide-react";
+
+const MATCHDAY_PLAYLIST = [
+  {
+    id: "anthem-1",
+    title: "Mantle of Glory",
+    subtitle: "Champions Matchday Anthem",
+    src: "/audio/matchday-anthem-1.mp3",
+  },
+  {
+    id: "anthem-2",
+    title: "Stadium Lights",
+    subtitle: "High-Energy Arena Hype",
+    src: "/audio/matchday-anthem-2.mp3",
+  },
+  {
+    id: "anthem-3",
+    title: "Tunnel Walk",
+    subtitle: "Electric Pre-Match Walkout",
+    src: "/audio/matchday-anthem-3.mp3",
+  },
+];
 
 export function AudioToggle() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.5);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const masterGainRef = useRef<GainNode | null>(null);
-  const nodesRef = useRef<{
-    oscillators: OscillatorNode[];
-    noiseSource: AudioBufferSourceNode | null;
-    lfo: OscillatorNode | null;
-    filters: BiquadFilterNode[];
-  }>({
-    oscillators: [],
-    noiseSource: null,
-    lfo: null,
-    filters: [],
-  });
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [volume, setVolume] = useState(0.6);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const createPinkNoiseBuffer = (ctx: AudioContext): AudioBuffer => {
-    const bufferSize = ctx.sampleRate * 4; // 4 seconds looping buffer
-    const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
-    for (let channel = 0; channel < 2; channel++) {
-      const data = buffer.getChannelData(channel);
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        b3 = 0.86650 * b3 + white * 0.3104856;
-        b4 = 0.55000 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.0168980;
-        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-        b6 = white * 0.115926;
-      }
-    }
-    return buffer;
-  };
-
-  const startAudio = () => {
-    try {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const ctx = new AudioCtx();
-      if (ctx.state === "suspended") {
-        ctx.resume();
-      }
-      audioCtxRef.current = ctx;
-
-      // 1. Dynamics Compressor (Mastering stage for warm punchy audio on all speakers)
-      const compressor = ctx.createDynamicsCompressor();
-      compressor.threshold.setValueAtTime(-24, ctx.currentTime);
-      compressor.knee.setValueAtTime(30, ctx.currentTime);
-      compressor.ratio.setValueAtTime(12, ctx.currentTime);
-      compressor.attack.setValueAtTime(0.003, ctx.currentTime);
-      compressor.release.setValueAtTime(0.25, ctx.currentTime);
-      compressor.connect(ctx.destination);
-
-      // 2. Master Gain
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.001, ctx.currentTime);
-      masterGain.gain.exponentialRampToValueAtTime(volume * 0.35, ctx.currentTime + 1.5);
-      masterGain.connect(compressor);
-      masterGainRef.current = masterGain;
-
-      const activeOscillators: OscillatorNode[] = [];
-      const activeFilters: BiquadFilterNode[] = [];
-
-      // =========================================================================
-      // LAYER 1: CINEMATIC STADIUM DRONE CHORD (D-Minor / A Heroic Texture)
-      // Notes: D2 (73.4Hz), A2 (110.0Hz), D3 (146.8Hz), F3 (174.6Hz), A3 (220.0Hz)
-      // =========================================================================
-      const chordFrequencies = [
-        { freq: 73.42, type: "triangle" as OscillatorType, gain: 0.5, detune: -4 },
-        { freq: 110.0, type: "sawtooth" as OscillatorType, gain: 0.25, detune: 5 },
-        { freq: 146.83, type: "sine" as OscillatorType, gain: 0.4, detune: -6 },
-        { freq: 174.61, type: "triangle" as OscillatorType, gain: 0.3, detune: 4 },
-        { freq: 220.0, type: "sine" as OscillatorType, gain: 0.2, detune: 2 },
-      ];
-
-      const padFilter = ctx.createBiquadFilter();
-      padFilter.type = "lowpass";
-      padFilter.frequency.setValueAtTime(420, ctx.currentTime);
-      padFilter.Q.setValueAtTime(2.0, ctx.currentTime);
-      activeFilters.push(padFilter);
-
-      const padGain = ctx.createGain();
-      padGain.gain.setValueAtTime(0.7, ctx.currentTime);
-
-      chordFrequencies.forEach(({ freq, type, gain, detune }) => {
-        const osc = ctx.createOscillator();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        osc.detune.setValueAtTime(detune, ctx.currentTime);
-
-        const oscGain = ctx.createGain();
-        oscGain.gain.setValueAtTime(gain, ctx.currentTime);
-
-        osc.connect(oscGain);
-        oscGain.connect(padFilter);
-        osc.start();
-        activeOscillators.push(osc);
-      });
-
-      padFilter.connect(padGain);
-      padGain.connect(masterGain);
-
-      // =========================================================================
-      // LAYER 2: DISTANT STADIUM CROWD SWELLS & ARENA WIND NOISE
-      // =========================================================================
-      const crowdBuffer = createPinkNoiseBuffer(ctx);
-      const noiseSource = ctx.createBufferSource();
-      noiseSource.buffer = crowdBuffer;
-      noiseSource.loop = true;
-
-      // Resonant bandpass filter that sounds like distant cheering thousands
-      const crowdFilter = ctx.createBiquadFilter();
-      crowdFilter.type = "bandpass";
-      crowdFilter.frequency.setValueAtTime(550, ctx.currentTime);
-      crowdFilter.Q.setValueAtTime(3.5, ctx.currentTime);
-      activeFilters.push(crowdFilter);
-
-      const crowdGain = ctx.createGain();
-      crowdGain.gain.setValueAtTime(0.5, ctx.currentTime);
-
-      // LFO modulation to simulate periodic waves of crowd cheers rising & falling
-      const lfo = ctx.createOscillator();
-      lfo.frequency.setValueAtTime(0.09, ctx.currentTime); // ~11-second natural swell cycle
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.setValueAtTime(280, ctx.currentTime); // mod range
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(crowdFilter.frequency);
-      lfo.start();
-
-      noiseSource.connect(crowdFilter);
-      crowdFilter.connect(crowdGain);
-      crowdGain.connect(masterGain);
-      noiseSource.start();
-
-      nodesRef.current = {
-        oscillators: activeOscillators,
-        noiseSource,
-        lfo,
-        filters: activeFilters,
-      };
-
-      setIsPlaying(true);
-    } catch (e) {
-      console.warn("Web Audio policy restricted:", e);
-      setIsPlaying(false);
-    }
-  };
-
-  const stopAudio = () => {
-    if (masterGainRef.current && audioCtxRef.current) {
-      try {
-        const ctx = audioCtxRef.current;
-        masterGainRef.current.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-        setTimeout(() => {
-          nodesRef.current.oscillators.forEach((osc) => {
-            try {
-              osc.stop();
-            } catch {}
-          });
-          try {
-            nodesRef.current.noiseSource?.stop();
-          } catch {}
-          try {
-            nodesRef.current.lfo?.stop();
-          } catch {}
-          audioCtxRef.current?.close();
-          audioCtxRef.current = null;
-        }, 650);
-      } catch {}
-    }
-    setIsPlaying(false);
-  };
-
-  const toggleSound = () => {
-    if (isPlaying) {
-      stopAudio();
-    } else {
-      startAudio();
-    }
-  };
+  const currentTrack = MATCHDAY_PLAYLIST[currentTrackIndex];
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const audio = new Audio(MATCHDAY_PLAYLIST[0].src);
+    audio.loop = false;
+    audio.volume = volume;
+
+    audio.onended = () => {
+      setCurrentTrackIndex((prev) => (prev + 1) % MATCHDAY_PLAYLIST.length);
+    };
+
+    audioRef.current = audio;
+
     return () => {
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(() => {});
-      }
+      audio.pause();
+      audio.src = "";
     };
   }, []);
 
+  // Update track src when track index changes
+  useEffect(() => {
+    if (audioRef.current && typeof window !== "undefined") {
+      const wasPlaying = isPlaying;
+      audioRef.current.src = currentTrack.src;
+      audioRef.current.volume = volume;
+      if (wasPlaying) {
+        audioRef.current.play().catch(() => setIsPlaying(false));
+      }
+    }
+  }, [currentTrackIndex]);
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((e) => {
+          console.warn("Playback error:", e);
+          setIsPlaying(false);
+        });
+    }
+  };
+
+  const handleNextTrack = () => {
+    setCurrentTrackIndex((prev) => (prev + 1) % MATCHDAY_PLAYLIST.length);
+  };
+
   return (
-    <div className="flex items-center gap-1.5">
-      <button
-        onClick={toggleSound}
-        className={`group relative flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-mono tracking-wider backdrop-blur-md transition-all duration-300 ${
-          isPlaying
-            ? "border-amber-400 bg-amber-500/15 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)]"
-            : "border-white/10 bg-black/40 text-zinc-300 hover:border-amber-500/50 hover:bg-black/60 hover:text-white"
-        }`}
-        title={isPlaying ? "Mute Matchday Arena Atmosphere" : "Turn ON Matchday Arena Sound"}
-        aria-label="Toggle atmospheric sound"
-      >
-        <span className="relative flex h-2 w-2">
-          {isPlaying && (
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+    <div className="relative flex items-center">
+      {/* Mini Player Bar */}
+      <div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-black/70 px-2.5 py-1 text-[11px] font-mono backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.6)]">
+        {/* Play/Pause Button */}
+        <button
+          onClick={togglePlay}
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-black hover:bg-amber-300 transition-transform active:scale-95 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+          title={isPlaying ? "Pause Matchday Soundtrack" : "Play Football Soundtrack"}
+        >
+          {isPlaying ? (
+            <Pause className="h-3.5 w-3.5 fill-black stroke-black" />
+          ) : (
+            <Play className="h-3.5 w-3.5 fill-black stroke-black ml-0.5" />
           )}
-          <span
-            className={`relative inline-flex h-2 w-2 rounded-full ${
-              isPlaying ? "bg-amber-400 shadow-[0_0_8px_#f59e0b]" : "bg-zinc-600"
-            }`}
-          ></span>
-        </span>
+        </button>
 
-        <span className="hidden sm:inline font-bold">
-          {isPlaying ? "ARENA SOUND: ON" : "ARENA SOUND: OFF"}
-        </span>
+        {/* Track Title Display */}
+        <div
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex flex-col cursor-pointer max-w-[110px] sm:max-w-[160px] truncate px-1 text-left select-none"
+        >
+          <div className="flex items-center gap-1.5 font-bold text-white truncate text-[11px]">
+            <Disc className={`h-3 w-3 flex-shrink-0 text-amber-400 ${isPlaying ? "animate-spin" : ""}`} />
+            <span className="truncate">{currentTrack.title}</span>
+          </div>
+          <span className="text-[9px] text-zinc-400 truncate hidden sm:block">
+            {currentTrack.subtitle}
+          </span>
+        </div>
 
-        {isPlaying ? (
-          <Volume2 className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
-        ) : (
-          <VolumeX className="h-3.5 w-3.5 text-zinc-400 transition-transform group-hover:scale-110" />
+        {/* Next Track Button */}
+        <button
+          onClick={handleNextTrack}
+          className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
+          title="Skip to next track"
+        >
+          <SkipForward className="h-3.5 w-3.5" />
+        </button>
+
+        {/* Sound Waves Animation when active */}
+        {isPlaying && (
+          <div className="flex items-end gap-0.5 h-3.5 px-1">
+            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_100ms] h-2" />
+            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_300ms] h-3.5" />
+            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_200ms] h-1.5" />
+            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_400ms] h-3" />
+          </div>
         )}
-      </button>
+      </div>
+
+      {/* Expanded Playlist & Volume Modal */}
+      {isExpanded && (
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-white/15 bg-zinc-950/95 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+            <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-400">
+              <Music className="h-4 w-4" />
+              <span>MATCHDAY SOUNDTRACK</span>
+            </div>
+            <span className="font-mono text-[10px] text-zinc-500">ROYALTY-FREE</span>
+          </div>
+
+          {/* Volume Slider */}
+          <div className="space-y-1 mb-3 bg-zinc-900/60 p-2.5 rounded-xl border border-white/5">
+            <div className="flex justify-between font-mono text-[10px] text-zinc-400">
+              <span>VOLUME</span>
+              <span>{Math.round(volume * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-zinc-700 rounded-lg"
+            />
+          </div>
+
+          {/* Playlist Track List */}
+          <div className="space-y-1.5">
+            {MATCHDAY_PLAYLIST.map((track, idx) => {
+              const isCurrent = idx === currentTrackIndex;
+              return (
+                <div
+                  key={track.id}
+                  onClick={() => {
+                    setCurrentTrackIndex(idx);
+                    if (!isPlaying && audioRef.current) {
+                      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+                    }
+                  }}
+                  className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all ${
+                    isCurrent
+                      ? "bg-amber-400/15 border border-amber-400/40 text-amber-300"
+                      : "bg-zinc-900/40 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-mono font-bold ${
+                        isCurrent ? "bg-amber-400 text-black" : "bg-zinc-800 text-zinc-400"
+                      }`}
+                    >
+                      {idx + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs truncate">{track.title}</div>
+                      <div className="text-[10px] text-zinc-500 truncate">{track.subtitle}</div>
+                    </div>
+                  </div>
+
+                  {isCurrent && isPlaying && (
+                    <div className="flex items-end gap-0.5 h-3 flex-shrink-0">
+                      <span className="w-0.5 bg-amber-400 rounded-full animate-[pulse_0.6s_infinite] h-2" />
+                      <span className="w-0.5 bg-amber-400 rounded-full animate-[pulse_0.9s_infinite] h-3" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
