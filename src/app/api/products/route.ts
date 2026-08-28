@@ -8,6 +8,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search");
     const league = searchParams.get("league");
     const featured = searchParams.get("featured");
+    const size = searchParams.get("size"); // "S", "M", "L", "XL", "XXL"
     const sort = searchParams.get("sort"); // "price_asc", "price_desc", "newest"
 
     const where: Record<string, unknown> = {};
@@ -18,6 +19,14 @@ export async function GET(request: Request) {
 
     if (featured === "true") {
       where.isFeatured = true;
+    }
+
+    if (size) {
+      if (size === "S") where.stockS = { gt: 0 };
+      if (size === "M") where.stockM = { gt: 0 };
+      if (size === "L") where.stockL = { gt: 0 };
+      if (size === "XL") where.stockXL = { gt: 0 };
+      if (size === "XXL") where.stockXXL = { gt: 0 };
     }
 
     if (search) {

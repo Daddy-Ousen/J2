@@ -48,6 +48,11 @@ export default function CheckoutPage() {
   const [orderComplete, setOrderComplete] = useState<any>(null);
   const [copiedNumber, setCopiedNumber] = useState(false);
 
+  // Coupon code state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   useEffect(() => {
     // Load stored cart
     const stored = getStoredCart();
@@ -82,8 +87,27 @@ export default function CheckoutPage() {
     (acc, item) => (item.customConfig ? acc + 200 * item.quantity : acc),
     0
   );
-  const shippingFee = subtotal >= 3000 ? 0 : zone === "outside_dhaka" ? 130 : 80;
-  const total = subtotal + customizationFee + shippingFee;
+
+  let discountAmount = 0;
+  if (appliedCoupon === "VERSE10") {
+    discountAmount = Math.round(subtotal * 0.1);
+  }
+
+  let shippingFee = subtotal >= 3000 || appliedCoupon === "FREESHIP" ? 0 : zone === "outside_dhaka" ? 130 : 80;
+  const total = Math.max(0, subtotal + customizationFee + shippingFee - discountAmount);
+
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponError(null);
+    const code = couponCode.trim().toUpperCase();
+    if (code === "VERSE10") {
+      setAppliedCoupon("VERSE10");
+    } else if (code === "FREESHIP") {
+      setAppliedCoupon("FREESHIP");
+    } else {
+      setCouponError("Invalid promo code. Try VERSE10 for 10% off.");
+    }
+  };
 
   const handleCopyNumber = (numText: string) => {
     const rawNumber = numText.split(" ")[0].replace(/\D/g, "");
@@ -540,12 +564,49 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {/* Promo Code Box */}
+              <div className="pt-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="PROMO CODE (e.g. VERSE10)"
+                    className="flex-1 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-xs font-mono text-white uppercase placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    className="rounded-xl bg-zinc-900 border border-white/20 hover:border-amber-400 hover:text-amber-300 px-4 py-2 font-mono text-xs font-bold text-white transition-colors"
+                  >
+                    APPLY
+                  </button>
+                </div>
+                {appliedCoupon && (
+                  <div className="mt-1.5 font-mono text-[10px] text-emerald-400">
+                    ✓ Code <strong>{appliedCoupon}</strong> active ({appliedCoupon === "VERSE10" ? "10% off subtotal" : "Free courier delivery"})
+                  </div>
+                )}
+                {couponError && (
+                  <div className="mt-1.5 font-mono text-[10px] text-rose-400">
+                    {couponError}
+                  </div>
+                )}
+              </div>
+
               {/* Price Breakdown */}
               <div className="border-t border-white/10 pt-4 space-y-2 font-mono text-xs">
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal:</span>
                   <span className="text-white">৳{subtotal.toLocaleString()} BDT</span>
                 </div>
+
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Promo Discount ({appliedCoupon}):</span>
+                    <span>-৳{discountAmount.toLocaleString()} BDT</span>
+                  </div>
+                )}
 
                 {customizationFee > 0 && (
                   <div className="flex justify-between text-amber-300">
