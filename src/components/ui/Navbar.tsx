@@ -26,9 +26,15 @@ interface NavbarProps {
 export function Navbar({ cartCount = 0, onOpenCart }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [currency, setCurrency] = useState("BDT");
   const pathname = usePathname();
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("jv_currency_v1");
+      if (saved) setCurrency(saved);
+    } catch {}
+
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {
@@ -111,6 +117,21 @@ export function Navbar({ cartCount = 0, onOpenCart }: NavbarProps) {
         {/* Right Utility Buttons */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           <AudioToggle />
+
+          {/* Currency Toggle (BDT / USD) */}
+          <button
+            onClick={() => {
+              const current = localStorage.getItem("jv_currency_v1") || "BDT";
+              const next = current === "BDT" ? "USD" : "BDT";
+              localStorage.setItem("jv_currency_v1", next);
+              window.dispatchEvent(new CustomEvent("jv_currency_changed", { detail: next }));
+              setCurrency(next);
+            }}
+            className="flex items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-mono font-bold text-amber-300 backdrop-blur-md hover:border-amber-400 transition-all"
+            title="Switch Currency (BDT ৳ / USD $)"
+          >
+            <span>{currency === "USD" ? "🌐 USD ($)" : "🇧🇩 BDT (৳)"}</span>
+          </button>
 
           {/* User Account / Login Shortcut */}
           <Link

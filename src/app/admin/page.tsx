@@ -1297,6 +1297,81 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* Global Currency Exchange Rate */}
+              <div className="pt-4 border-t border-white/10">
+                <h4 className="font-mono text-xs font-bold text-amber-300 uppercase mb-3">
+                  🌐 GLOBAL & EXPAT CURRENCY RATE
+                </h4>
+                <div>
+                  <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                    USD Exchange Rate (1 USD in BDT)
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.usd_exchange_rate || "122"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, usd_exchange_rate: e.target.value })
+                    }
+                    placeholder="e.g. 122"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Courier & SMS API Gateways */}
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <h4 className="font-mono text-xs font-bold text-amber-300 uppercase">
+                  ⚡ API INTEGRATIONS & GATEWAYS
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Steadfast Courier API Key
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.steadfast_api_key || ""}
+                      onChange={(e) =>
+                        setSettings({ ...settings, steadfast_api_key: e.target.value })
+                      }
+                      placeholder="Paste Steadfast API Key"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Steadfast Secret Key
+                    </label>
+                    <input
+                      type="password"
+                      value={settings.steadfast_secret_key || ""}
+                      onChange={(e) =>
+                        setSettings({ ...settings, steadfast_secret_key: e.target.value })
+                      }
+                      placeholder="Paste Steadfast Secret"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                    Bangladesh SMS Gateway API Token (Greenweb / BulkSMSBD)
+                  </label>
+                  <input
+                    type="password"
+                    value={settings.sms_api_key || ""}
+                    onChange={(e) =>
+                      setSettings({ ...settings, sms_api_key: e.target.value })
+                    }
+                    placeholder="Paste SMS Gateway Token"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={savingSettings}

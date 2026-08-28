@@ -40,13 +40,44 @@ export default function ProductDetailPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [added, setAdded] = useState(false);
+  const [currency, setCurrency] = useState<"BDT" | "USD">("BDT");
+
+  // Reviews state
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewCity, setReviewCity] = useState("Dhaka");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     setCartItems(getStoredCart());
+    try {
+      const savedCur = localStorage.getItem("jv_currency_v1") as "BDT" | "USD";
+      if (savedCur) setCurrency(savedCur);
+    } catch {}
+
+    const handleCurChange = (e: any) => {
+      if (e.detail) setCurrency(e.detail);
+    };
+    window.addEventListener("jv_currency_changed", handleCurChange);
+    return () => window.removeEventListener("jv_currency_changed", handleCurChange);
   }, []);
+
+  const loadReviews = () => {
+    if (!id) return;
+    fetch(`/api/products/${id}/reviews`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.reviews) setReviews(data.reviews);
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     if (!id) return;
+    loadReviews();
     fetch(`/api/products/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -80,6 +111,34 @@ export default function ProductDetailPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewName || !reviewComment) return;
+    setIsSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/products/${id}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userName: reviewName,
+          userCity: reviewCity,
+          rating: reviewRating,
+          comment: reviewComment,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsReviewModalOpen(false);
+        setReviewComment("");
+        loadReviews();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -555,16 +614,39 @@ export default function ProductDetailPage() {
             <div>
               <div className="flex items-center gap-2">
                 <div className="flex text-amber-400 text-sm">★★★★★</div>
-                <span className="font-mono text-xs font-bold text-white">4.9 / 5.0 (48 Verified Match Reviews)</span>
+                <span className="font-mono text-xs font-bold text-white">
+                  4.9 / 5.0 ({48 + reviews.length} Verified Match Reviews)
+                </span>
               </div>
               <h3 className="text-xl font-bold text-white mt-1">Player & Athlete Impressions</h3>
             </div>
-            <div className="font-mono text-xs text-zinc-400">
-              100% Authentic Tagged Commissions • Tested in Dhaka
-            </div>
+
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 px-4 py-2 font-mono text-xs font-bold text-black transition-colors self-start sm:self-auto"
+            >
+              <span>+ WRITE MATCHDAY REVIEW</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Dynamic Community Reviews */}
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 space-y-3 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-amber-300">{r.userName}</span>
+                  <span className="text-amber-400 text-xs">{"★".repeat(r.rating)}</span>
+                </div>
+                <p className="font-sans text-xs text-zinc-300 leading-relaxed font-light">
+                  &ldquo;{r.comment}&rdquo;
+                </p>
+                <div className="font-mono text-[10px] text-zinc-500">
+                  Verified {r.userCity} Commission (bKash/Nagad)
+                </div>
+              </div>
+            ))}
+
+            {/* Default Verified Testimonials */}
             <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-bold text-amber-300">Shahriar A.</span>
@@ -600,6 +682,100 @@ export default function ProductDetailPage() {
           </div>
         </section>
       </main>
+
+      {/* Review Submission Modal */}
+      {isReviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => setIsReviewModalOpen(false)}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/15 bg-zinc-950 p-6 sm:p-8 shadow-2xl text-white">
+            <h3 className="text-lg font-bold">Write a Matchday Review</h3>
+            <p className="font-mono text-xs text-zinc-400 mt-1">
+              Share your impressions on fabric, crest relief, and fit.
+            </p>
+
+            <form onSubmit={handleSubmitReview} className="space-y-4 mt-6">
+              <div>
+                <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                  Your Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={reviewName}
+                  onChange={(e) => setReviewName(e.target.value)}
+                  placeholder="e.g. Tanvir Ahmed"
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                    Your City / District
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewCity}
+                    onChange={(e) => setReviewCity(e.target.value)}
+                    placeholder="e.g. Dhaka, Sylhet"
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                    Rating (Stars)
+                  </label>
+                  <select
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                    className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 font-mono text-xs text-amber-400 font-bold focus:border-amber-400 focus:outline-none"
+                  >
+                    <option value={5}>★★★★★ (5 Stars)</option>
+                    <option value={4}>★★★★☆ (4 Stars)</option>
+                    <option value={3}>★★★☆☆ (3 Stars)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                  Review & Quality Feedback
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="How does the fabric feel? How is the 3D silicone badge?"
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="rounded-xl border border-white/10 px-4 py-2 font-mono text-xs text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview}
+                  className="rounded-xl bg-amber-400 hover:bg-amber-300 px-5 py-2 font-mono text-xs font-bold text-black transition-colors"
+                >
+                  {isSubmittingReview ? "Submitting..." : "Publish Review"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Sizing Modal with Fit Calculator */}
       <SizeGuideModal

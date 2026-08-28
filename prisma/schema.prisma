@@ -48,6 +48,19 @@ model Product {
   inStock       Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  reviews       Review[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userName  String
+  userCity  String   @default("Dhaka")
+  rating    Int      @default(5)
+  comment   String
+  verified  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 
 model Order {
@@ -84,3 +97,4 @@ model Setting {
   key   String @unique
   value String
 }
+
