@@ -588,6 +588,54 @@ export default function AdminPage() {
                   <RefreshCw className="h-3.5 w-3.5" />
                   <span>Refresh</span>
                 </button>
+
+                <button
+                  onClick={() => {
+                    const headers = [
+                      "Order Number",
+                      "Customer Name",
+                      "Phone Number",
+                      "Address",
+                      "Zone",
+                      "Total Amount (BDT)",
+                      "Payment Method",
+                      "Sender Mobile",
+                      "Transaction ID (TrxID)",
+                      "Payment Status",
+                      "Order Status",
+                      "Courier Consignment",
+                      "Created At",
+                    ];
+                    const rows = filteredOrders.map((o) => [
+                      `"${o.orderNumber}"`,
+                      `"${o.customerName}"`,
+                      `"${o.phone}"`,
+                      `"${(o.address || '').replace(/"/g, '""')}"`,
+                      `"${o.zone}"`,
+                      o.total,
+                      `"${o.paymentMethod}"`,
+                      `"${o.senderNumber}"`,
+                      `"${o.trxId}"`,
+                      `"${o.paymentStatus}"`,
+                      `"${o.orderStatus}"`,
+                      `"${o.consignmentId || ''}"`,
+                      `"${new Date(o.createdAt).toISOString()}"`,
+                    ]);
+                    const csvContent =
+                      "data:text/csv;charset=utf-8," +
+                      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `jerseyverse_orders_${Date.now()}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-400 px-3.5 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors flex-shrink-0"
+                >
+                  <span>📥 EXPORT CSV</span>
+                </button>
               </div>
             </div>
 

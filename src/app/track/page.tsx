@@ -338,6 +338,16 @@ function TrackOrderContent() {
                 </div>
               </div>
             </div>
+
+            {/* Print Official Invoice Action */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 rounded-xl border border-white/15 bg-zinc-900 hover:border-amber-400 hover:text-amber-300 px-5 py-2.5 font-mono text-xs font-bold text-white transition-colors"
+              >
+                <span>🖨️ PRINT OFFICIAL DISPATCH INVOICE</span>
+              </button>
+            </div>
           </div>
         )}
       </main>
