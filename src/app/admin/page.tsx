@@ -749,7 +749,7 @@ export default function AdminPage() {
                       {/* Admin Actions Bar */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/5 pt-4">
                         {/* One-click Verify Buttons */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
                             onClick={() =>
                               handleUpdateOrderStatus(order.id, "VERIFIED", "CONFIRMED")
@@ -758,6 +758,34 @@ export default function AdminPage() {
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             <span>APPROVE PAYMENT</span>
+                          </button>
+
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Book Order ${order.orderNumber} directly with Steadfast Courier and send Dispatch SMS?`)) return;
+                              try {
+                                const res = await fetch("/api/admin/orders", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    id: order.id,
+                                    action: "book_steadfast",
+                                  }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  alert(`⚡ Steadfast Consignment Generated: ${data.order.consignmentId}\nSMS Dispatched to ${data.order.phone}`);
+                                  loadDashboardData();
+                                } else {
+                                  alert(data.error || "Failed to book with Steadfast");
+                                }
+                              } catch (e) {
+                                alert("Failed to connect to Steadfast dispatch service");
+                              }
+                            }}
+                            className="flex items-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 px-3 py-1.5 font-mono text-xs font-bold text-black transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                          >
+                            <span>⚡ BOOK WITH STEADFAST</span>
                           </button>
 
                           <button

@@ -595,8 +595,8 @@ export function StudioConfigurator({ onAddBespokeToBag }: StudioConfiguratorProp
               </div>
             )}
 
-            {/* Save Custom Kit Spec Action Button */}
-            <div className="pt-2">
+            {/* Action Buttons */}
+            <div className="pt-2 space-y-2">
               <button
                 onClick={handleSaveSpec}
                 className="w-full group flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 py-3.5 px-6 font-mono text-xs font-black tracking-widest text-black shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all hover:brightness-110 active:scale-98"
@@ -613,6 +613,109 @@ export function StudioConfigurator({ onAddBespokeToBag }: StudioConfiguratorProp
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const canvas = document.createElement("canvas");
+                  canvas.width = 1200;
+                  canvas.height = 1500;
+                  const ctx = canvas.getContext("2d");
+                  if (!ctx) return;
+
+                  // Background Gradient
+                  const bgGrad = ctx.createLinearGradient(0, 0, 1200, 1500);
+                  bgGrad.addColorStop(0, "#08090c");
+                  bgGrad.addColorStop(0.5, "#12151d");
+                  bgGrad.addColorStop(1, "#050608");
+                  ctx.fillStyle = bgGrad;
+                  ctx.fillRect(0, 0, 1200, 1500);
+
+                  // Outer Border
+                  ctx.strokeStyle = "#f59e0b";
+                  ctx.lineWidth = 6;
+                  ctx.strokeRect(40, 40, 1120, 1420);
+
+                  // Inner Golden Border
+                  ctx.strokeStyle = "rgba(245, 158, 11, 0.35)";
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(60, 60, 1080, 1380);
+
+                  // Header Badge
+                  ctx.fillStyle = "#f59e0b";
+                  ctx.font = "bold 28px monospace";
+                  ctx.textAlign = "center";
+                  ctx.fillText("JERSEY VERSE // ATELIER COMMISSION", 600, 140);
+
+                  ctx.fillStyle = "#a1a1aa";
+                  ctx.font = "18px monospace";
+                  ctx.fillText("OFFICIAL MATCHDAY CERTIFICATE OF AUTHENTICITY", 600, 175);
+
+                  // Divider
+                  ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                  ctx.beginPath();
+                  ctx.moveTo(120, 220);
+                  ctx.lineTo(1080, 220);
+                  ctx.stroke();
+
+                  // Colorway & Spec Box
+                  ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+                  ctx.fillRect(120, 260, 960, 180);
+                  ctx.strokeStyle = "rgba(245, 158, 11, 0.25)";
+                  ctx.strokeRect(120, 260, 960, 180);
+
+                  ctx.fillStyle = "#71717a";
+                  ctx.font = "bold 16px monospace";
+                  ctx.textAlign = "left";
+                  ctx.fillText("CHASSIS COLORWAY", 160, 310);
+                  ctx.fillStyle = "#ffffff";
+                  ctx.font = "bold 26px sans-serif";
+                  ctx.fillText(config.colorwayName.toUpperCase(), 160, 350);
+
+                  ctx.fillStyle = "#71717a";
+                  ctx.font = "bold 16px monospace";
+                  ctx.fillText("WEAVE DENSITY", 680, 310);
+                  ctx.fillStyle = "#f59e0b";
+                  ctx.font = "bold 26px monospace";
+                  ctx.fillText(`${config.weaveGsm} GSM AERO-MATRIX`, 680, 350);
+
+                  // Big Back Custom Identity
+                  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+                  ctx.fillRect(120, 480, 960, 680);
+                  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+                  ctx.strokeRect(120, 480, 960, 680);
+
+                  // Player Name
+                  ctx.fillStyle = "#f59e0b";
+                  ctx.font = "900 80px sans-serif";
+                  ctx.textAlign = "center";
+                  ctx.fillText(config.playerName.toUpperCase(), 600, 620);
+
+                  // Jersey Number
+                  ctx.fillStyle = "#ffffff";
+                  ctx.font = "900 360px monospace";
+                  ctx.fillText(config.jerseyNumber, 600, 990);
+
+                  // Serialized Authenticity Code
+                  const serialCode = `JV-AUTH-${Math.floor(100000 + Math.random() * 900000)}-DHAKA`;
+                  ctx.fillStyle = "#f59e0b";
+                  ctx.font = "bold 22px monospace";
+                  ctx.fillText(`SERIALIZED REGISTRY: ${serialCode}`, 600, 1260);
+
+                  ctx.fillStyle = "#71717a";
+                  ctx.font = "16px monospace";
+                  ctx.fillText("100% Guaranteed Liquid Silicone Relief & Thermal Bonding", 600, 1300);
+
+                  // Trigger Download
+                  const link = document.createElement("a");
+                  link.download = `jerseyverse_certificate_${config.playerName.toLowerCase()}_${config.jerseyNumber}.png`;
+                  link.href = canvas.toDataURL("image/png");
+                  link.click();
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-zinc-900/80 hover:border-amber-400 hover:text-amber-300 py-2.5 px-4 font-mono text-xs font-bold text-white transition-colors"
+              >
+                <span>📜 DOWNLOAD AUTHENTICITY CERTIFICATE CARD</span>
               </button>
             </div>
           </div>

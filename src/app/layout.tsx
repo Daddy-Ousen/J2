@@ -13,18 +13,46 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://j2-production.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Jersey verse // The Mantle of Conviction",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Jersey verse // The Mantle of Conviction",
+    template: "%s | Jersey verse",
+  },
   description:
-    "A cinematic brand experience exploring the emotional weight of a jersey — belief, struggle, and transcendence. Official in-stock matchday kits & bespoke atelier chassis.",
+    "Official matchday kits & bespoke atelier chassis. Authentic player-grade fabrics, liquid 3D crests, and custom name/number heat-press engineering.",
   keywords: [
     "Jersey verse",
-    "Jerseyverse",
-    "football jerseys",
-    "authentic matchday kits",
-    "sportswear",
-    "scrollytelling",
+    "Jerseyverse Bangladesh",
+    "authentic football jerseys Dhaka",
+    "retro kits Bangladesh",
+    "player issue jerseys",
+    "custom name printing",
   ],
+  openGraph: {
+    title: "Jersey verse // The Mantle of Conviction",
+    description: "Official matchday kits in Bangladesh. Upfront bKash/Nagad verification with nationwide fast courier delivery.",
+    url: siteUrl,
+    siteName: "Jersey verse",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/jerseys/769691740_1833867730957043_5625470285242444661_n.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Jersey verse Official Authentic Matchday Kits",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jersey verse // The Mantle of Conviction",
+    description: "Official matchday kits in Bangladesh with custom player name & number heat-press.",
+    images: ["/jerseys/769691740_1833867730957043_5625470285242444661_n.jpg"],
+  },
   icons: {
     icon: "/favicon.ico",
   },

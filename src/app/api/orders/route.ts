@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { sendOrderConfirmationSms } from "@/lib/sms";
 
 export async function POST(request: Request) {
   try {
@@ -71,6 +72,13 @@ export async function POST(request: Request) {
         adminNote: notes || null,
       },
     });
+
+    // Send instant SMS notification (Bangladesh Gateway)
+    try {
+      await sendOrderConfirmationSms(phone, orderNumber, total);
+    } catch (smsErr) {
+      console.warn("SMS alert notice:", smsErr);
+    }
 
     // Decrease stocks where applicable
     for (const item of items) {
