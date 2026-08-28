@@ -17,6 +17,7 @@ import {
   Send,
   Globe,
   ArrowUp,
+  ArrowRight,
   Layers,
   Sliders,
 } from "lucide-react";
@@ -230,7 +231,7 @@ export function Act4ProductCTA({
                       {jersey.colorway}
                     </p>
                     <span className="font-mono text-sm font-bold text-amber-400">
-                      ${jersey.price}
+                      ৳{jersey.price.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -295,6 +296,17 @@ export function Act4ProductCTA({
             </div>
           );
         })}
+      </div>
+
+      {/* Explore All In Shop Link */}
+      <div className="relative z-10 mx-auto max-w-7xl mt-10 flex justify-center">
+        <a
+          href="/shop"
+          className="inline-flex items-center gap-3 rounded-full border border-amber-500/40 bg-zinc-900/90 px-8 py-4 font-mono text-xs font-bold uppercase tracking-widest text-white shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:border-amber-400 hover:bg-amber-400 hover:text-black transition-all group"
+        >
+          <span>EXPLORE ALL 34 IN-STOCK MATCHDAY KITS</span>
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </a>
       </div>
 
       {/* ========================================================================= */}

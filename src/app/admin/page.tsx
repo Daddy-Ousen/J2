@@ -54,6 +54,29 @@ export default function AdminPage() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState(false);
 
+  // New Kit Creation State
+  const [isCreatingKit, setIsCreatingKit] = useState(false);
+  const [inventorySearch, setInventorySearch] = useState("");
+  const [newKitForm, setNewKitForm] = useState({
+    code: "",
+    name: "",
+    subtitle: "Matchday Kit",
+    price: 1200,
+    originalPrice: 1500,
+    league: "Premier League",
+    club: "",
+    image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+    weightGsm: 240,
+    stockS: 10,
+    stockM: 15,
+    stockL: 20,
+    stockXL: 10,
+    stockXXL: 5,
+    isFeatured: false,
+    story: "Authentic matchday edition jersey.",
+  });
+  const [creatingKitLoading, setCreatingKitLoading] = useState(false);
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -203,6 +226,44 @@ export default function AdminPage() {
       console.error(e);
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const handleCreateKit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingKitLoading(true);
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newKitForm),
+      });
+      if (res.ok) {
+        setIsCreatingKit(false);
+        setNewKitForm({
+          code: "",
+          name: "",
+          subtitle: "Matchday Kit",
+          price: 1200,
+          originalPrice: 1500,
+          league: "Premier League",
+          club: "",
+          image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+          weightGsm: 240,
+          stockS: 10,
+          stockM: 15,
+          stockL: 20,
+          stockXL: 10,
+          stockXXL: 5,
+          isFeatured: false,
+          story: "Authentic matchday edition jersey.",
+        });
+        loadDashboardData();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreatingKitLoading(false);
     }
   };
 
@@ -717,7 +778,7 @@ export default function AdminPage() {
         {/* ============================================================ */}
         {activeTab === "inventory" && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 flex items-center justify-between">
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
                   MATCHDAY KIT INVENTORY & PRICING
@@ -726,14 +787,204 @@ export default function AdminPage() {
                   Update base prices in BDT and adjust stock counts per size (S/M/L/XL/XXL).
                 </p>
               </div>
-              <span className="font-mono text-xs text-amber-400 font-bold">
-                {products.length} KITS IN REPOSITORY
-              </span>
+
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
+                    placeholder="Search kit or club..."
+                    className="w-48 sm:w-60 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 pl-8 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                  />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+                </div>
+
+                <button
+                  onClick={() => setIsCreatingKit(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors flex-shrink-0"
+                >
+                  <span>+ ADD NEW KIT</span>
+                </button>
+              </div>
             </div>
 
+            {/* Modal for Creating New Kit */}
+            {isCreatingKit && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+                <div className="w-full max-w-2xl rounded-3xl border border-amber-500/40 bg-zinc-950 p-6 sm:p-8 shadow-[0_0_80px_rgba(245,158,11,0.2)] my-8">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                    <h3 className="font-mono text-sm font-bold text-white uppercase">
+                      ADD NEW MATCHDAY KIT TO REPOSITORY
+                    </h3>
+                    <button
+                      onClick={() => setIsCreatingKit(false)}
+                      className="rounded-lg p-1 text-zinc-400 hover:text-white"
+                    >
+                      <XCircle className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateKit} className="space-y-4 font-mono text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Kit Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newKitForm.name}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, name: e.target.value })
+                          }
+                          placeholder="e.g. Real Madrid 24/25 Home"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Unique Serial Code *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newKitForm.code}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, code: e.target.value.toUpperCase() })
+                          }
+                          placeholder="e.g. JV-RMA/HOME25"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          League / Category
+                        </label>
+                        <select
+                          value={newKitForm.league}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, league: e.target.value })
+                          }
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        >
+                          <option value="Premier League">Premier League</option>
+                          <option value="La Liga">La Liga</option>
+                          <option value="Serie A">Serie A</option>
+                          <option value="Bundesliga">Bundesliga</option>
+                          <option value="Saudi Pro League">Saudi Pro League</option>
+                          <option value="International">International</option>
+                          <option value="Retro">Retro</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Club / Team Name
+                        </label>
+                        <input
+                          type="text"
+                          value={newKitForm.club}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, club: e.target.value })
+                          }
+                          placeholder="e.g. Real Madrid"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Price in BDT (৳) *
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          value={newKitForm.price}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, price: Number(e.target.value) })
+                          }
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Image Asset Path or URL
+                        </label>
+                        <input
+                          type="text"
+                          value={newKitForm.image}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, image: e.target.value })
+                          }
+                          placeholder="/jerseys/... or https://..."
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stock Counts Grid */}
+                    <div className="pt-2">
+                      <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                        Initial Stock Per Size (S / M / L / XL / XXL)
+                      </label>
+                      <div className="grid grid-cols-5 gap-2">
+                        {["stockS", "stockM", "stockL", "stockXL", "stockXXL"].map((key) => (
+                          <div key={key}>
+                            <span className="block text-center text-[10px] text-zinc-500 uppercase">
+                              {key.replace("stock", "")}
+                            </span>
+                            <input
+                              type="number"
+                              value={(newKitForm as any)[key]}
+                              onChange={(e) =>
+                                setNewKitForm({
+                                  ...newKitForm,
+                                  [key]: Number(e.target.value),
+                                })
+                              }
+                              className="w-full text-center rounded-lg border border-white/15 bg-zinc-900 py-1.5 text-white"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreatingKit(false)}
+                        className="px-4 py-2 text-zinc-400 hover:text-white"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={creatingKitLoading}
+                        className="rounded-xl bg-amber-400 px-6 py-2.5 font-bold text-black hover:bg-amber-300 disabled:opacity-50"
+                      >
+                        {creatingKitLoading ? "CREATING..." : "PUBLISH KIT TO STORE"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
-              {products.map((p) => {
-                const isEditing = editingProductId === p.id;
+              {products
+                .filter(
+                  (p) =>
+                    !inventorySearch ||
+                    p.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                    p.code.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                    p.club.toLowerCase().includes(inventorySearch.toLowerCase())
+                )
+                .map((p) => {
+                  const isEditing = editingProductId === p.id;
 
                 return (
                   <div

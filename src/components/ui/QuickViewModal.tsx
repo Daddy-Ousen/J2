@@ -113,7 +113,7 @@ export function QuickViewModal({
                 {jersey.name}
               </h2>
               <p className="font-mono text-xs text-amber-400/90 tracking-wider mt-0.5">
-                {jersey.subtitle} — ${jersey.price} USD
+                {jersey.subtitle} — ৳{jersey.price.toLocaleString()} BDT
               </p>
 
               <p className="mt-4 text-sm leading-relaxed text-zinc-300 font-light">
@@ -178,7 +178,7 @@ export function QuickViewModal({
                 ) : (
                   <>
                     <ShoppingBag className="h-4 w-4" />
-                    <span>CLAIM MANTLE — ${jersey.price}</span>
+                    <span>CLAIM MANTLE — ৳{jersey.price.toLocaleString()}</span>
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
