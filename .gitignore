@@ -43,3 +43,11 @@ prisma/dev.db*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python / tools
+.venv
+__pycache__/
+*.pyc
+tools/flow-agent/flow-agent/.venv/
+tools/flow-agent/flow-agent/output/
+
