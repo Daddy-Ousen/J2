@@ -206,7 +206,7 @@ export function StudioConfigurator({ onAddBespokeToBag }: StudioConfiguratorProp
       colorway: config.colorwayName,
       dominantColor: config.primaryColor,
       accentColor: config.accentColor,
-      image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+      image: "/jerseys_3d/atletico_volt.jpg",
       fallbackGradient: "from-zinc-950 via-zinc-900 to-amber-950/40",
       weightGsm: config.weaveGsm,
       fabric: config.weaveName,

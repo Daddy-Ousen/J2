@@ -1,19 +1,20 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { Sparkles, Eye, Zap, ShieldCheck } from "lucide-react";
+import { Sparkles, Eye, Zap, ShieldCheck, Shuffle } from "lucide-react";
 import { JERSEYS_DATA } from "@/data/jerseys";
+import { JerseyProduct } from "@/types";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 interface Act3JerseyMomentProps {
-  onInspectHeroKit?: () => void;
+  onInspectHeroKit?: (jersey: JerseyProduct) => void;
 }
 
 export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
@@ -25,8 +26,33 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
   const textStageRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const [hasFlashed, setHasFlashed] = useState(false);
+  const [currentIdx, setCurrentIdx] = useState(0);
 
-  const heroJersey = JERSEYS_DATA[0];
+  // Pick a random available kit on mount
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * JERSEYS_DATA.length);
+    setCurrentIdx(randomIndex);
+  }, []);
+
+  const heroJersey = JERSEYS_DATA[currentIdx] || JERSEYS_DATA[0];
+
+  const handleReroll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    let nextIdx = Math.floor(Math.random() * JERSEYS_DATA.length);
+    if (nextIdx === currentIdx && JERSEYS_DATA.length > 1) {
+      nextIdx = (currentIdx + 1) % JERSEYS_DATA.length;
+    }
+    setCurrentIdx(nextIdx);
+
+    // Micro pulse effect
+    if (jerseyAssetRef.current) {
+      gsap.fromTo(
+        jerseyAssetRef.current,
+        { scale: 0.95, opacity: 0.8 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }
+      );
+    }
+  };
 
   useGSAP(
     () => {
@@ -94,7 +120,7 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
         },
       });
 
-      // Camera push-in: scale up to 1.15, crisp focus
+      // Camera push-in: scale up to 1.12, crisp focus
       tl.to(
         jerseyAssetRef.current,
         {
@@ -171,9 +197,20 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
             <span className="text-white uppercase font-bold">THE JERSEY MOMENT</span>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] text-amber-300">
-            <Sparkles className="h-3 w-3 animate-spin" />
-            <span>EMOTIONAL APEX</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReroll}
+              className="flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-900/80 px-3 py-1 font-mono text-[10px] text-zinc-300 hover:text-amber-400 hover:border-amber-500/40 transition-all active:scale-95"
+              title="Shuffle to another random in-stock 3D armor"
+            >
+              <Shuffle className="h-3 w-3" />
+              <span>REROLL KIT</span>
+            </button>
+
+            <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] text-amber-300">
+              <Sparkles className="h-3 w-3 animate-spin" />
+              <span>EMOTIONAL APEX</span>
+            </div>
           </div>
         </div>
 
@@ -185,24 +222,24 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
           {/* Scalable Jersey Asset Container */}
           <div
             ref={jerseyAssetRef}
-            className="relative w-[240px] h-[280px] sm:w-[300px] sm:h-[350px] md:w-[360px] md:h-[420px] flex items-center justify-center transform-gpu cursor-pointer group"
-            onClick={onInspectHeroKit}
+            className="relative w-[230px] h-[330px] sm:w-[280px] sm:h-[400px] md:w-[320px] md:h-[460px] flex items-center justify-center transform-gpu cursor-pointer group"
+            onClick={() => onInspectHeroKit?.(heroJersey)}
             title="Click to inspect kit details"
           >
-            {/* Real High-Res In-Stock Jersey Image */}
-            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.9)] border border-white/10 bg-zinc-900/60 backdrop-blur-sm group-hover:border-amber-500/50 transition-colors">
+            {/* Real High-Res 3D In-Stock Jersey Image */}
+            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/10 bg-zinc-950/80 backdrop-blur-sm group-hover:border-amber-500/50 transition-colors">
               <Image
                 src={heroJersey.image}
                 alt={heroJersey.name}
                 fill
                 priority
-                sizes="(max-width: 768px) 300px, 420px"
-                className="object-cover object-center filter contrast-[1.08] brightness-[0.98] group-hover:scale-105 transition-transform duration-700 ease-out"
+                sizes="(max-width: 768px) 280px, 320px"
+                className="object-cover object-center filter contrast-[1.05] brightness-[1.0] group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-transparent to-black/20" />
 
               {/* Floating Quick Action Overlay */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-lg border border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-lg border border-white/10 bg-black/80 px-3 py-2 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <span className="font-mono text-[10px] text-zinc-200 truncate pr-2 font-bold">
                   {heroJersey.name}
                 </span>
@@ -228,7 +265,7 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 font-mono text-[9px] uppercase tracking-[0.25em] text-amber-300">
               <ShieldCheck className="h-3 w-3" />
-              <span>THE MANTLE</span>
+              <span>THE MANTLE // {heroJersey.name}</span>
             </div>
 
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white leading-tight">
@@ -246,7 +283,7 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
 
             <div className="pt-1">
               <button
-                onClick={onInspectHeroKit}
+                onClick={() => onInspectHeroKit?.(heroJersey)}
                 className="inline-flex items-center gap-2 rounded-full border border-amber-500/50 bg-amber-500/20 px-4 py-1.5 text-xs font-mono font-bold tracking-widest text-amber-300 hover:bg-amber-500 hover:text-black transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)]"
               >
                 <Zap className="h-3.5 w-3.5" />

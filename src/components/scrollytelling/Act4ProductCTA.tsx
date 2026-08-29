@@ -54,6 +54,15 @@ export function Act4ProductCTA({
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
   const [emailInput, setEmailInput] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const filteredJerseys = JERSEYS_DATA.filter((j) => {
+    if (activeCategory === "All") return true;
+    if (activeCategory === "Retro") return j.id.includes("retro") || j.name.toLowerCase().includes("retro") || (j as any).edition?.includes("Retro");
+    if (activeCategory === "International") return j.name.includes("Portugal") || j.name.includes("Argentina") || j.name.includes("Brazil") || j.name.includes("France") || j.name.includes("England") || j.name.includes("Germany") || j.name.includes("Italy") || j.name.includes("Spain") || j.name.includes("Norway");
+    if (activeCategory === "Clubs") return !j.id.includes("retro") && !j.name.includes("Portugal") && !j.name.includes("Argentina") && !j.name.includes("Brazil") && !j.name.includes("France") && !j.name.includes("England") && !j.name.includes("Germany") && !j.name.includes("Italy") && !j.name.includes("Spain") && !j.name.includes("Norway");
+    return true;
+  });
 
   useGSAP(
     () => {
@@ -119,24 +128,20 @@ export function Act4ProductCTA({
     setAddedIds((prev) => ({ ...prev, [jersey.id]: true }));
     setTimeout(() => {
       setAddedIds((prev) => ({ ...prev, [jersey.id]: false }));
-    }, 2000);
+    }, 2200);
   };
 
   const scrollToStudio = () => {
-    const el = document.getElementById("atelier-studio-configurator");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    if (configuratorRef.current) {
+      configuratorRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (emailInput.trim()) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setEmailInput("");
-      }, 3000);
-    }
+    if (!emailInput || !emailInput.includes("@")) return;
+    setSubscribed(true);
+    setEmailInput("");
   };
 
   const scrollToTop = () => {
@@ -156,7 +161,7 @@ export function Act4ProductCTA({
       </div>
 
       {/* Act Header */}
-      <div className="relative z-10 mx-auto max-w-7xl border-b border-white/10 pb-6 mb-12">
+      <div className="relative z-10 mx-auto max-w-7xl border-b border-white/10 pb-6 mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-amber-300">
@@ -169,17 +174,39 @@ export function Act4ProductCTA({
           </div>
           <p className="max-w-md font-mono text-xs leading-relaxed text-zinc-400">
             Real matchday armor currently in stock at <span className="text-amber-400 font-bold">Jersey verse</span>.
-            Serialized, authentic, and ready for immediate courier dispatch.
+            Serialized, authentic, rendered in 3D, and ready for immediate courier dispatch.
           </p>
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-white/5 font-mono text-xs">
+          {[
+            { id: "All", label: `ALL MATCHDAY KITS (${JERSEYS_DATA.length})` },
+            { id: "Clubs", label: "24/25 CLUBS" },
+            { id: "International", label: "EURO & COPA" },
+            { id: "Retro", label: "LEGENDARY RETRO VAULT" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wider transition-all ${
+                activeCategory === cat.id
+                  ? "bg-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                  : "border border-white/10 bg-zinc-900/60 text-zinc-400 hover:border-white/20 hover:text-white"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Product Grid (Real In-Stock Jerseys) */}
+      {/* Product Grid (Real In-Stock Jerseys with 3D Renders) */}
       <div
         ref={gridRef}
         className="relative z-10 mx-auto max-w-7xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {JERSEYS_DATA.map((jersey, idx) => {
+        {filteredJerseys.map((jersey, idx) => {
           const isAdded = addedIds[jersey.id];
           const currentSize = selectedSizes[jersey.id] || "M";
 

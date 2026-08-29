@@ -65,7 +65,7 @@ export default function AdminPage() {
     originalPrice: 1500,
     league: "Premier League",
     club: "",
-    image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+    image: "/jerseys_3d/atletico_volt.jpg",
     weightGsm: 240,
     stockS: 10,
     stockM: 15,
@@ -248,7 +248,7 @@ export default function AdminPage() {
           originalPrice: 1500,
           league: "Premier League",
           club: "",
-          image: "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+          image: "/jerseys_3d/atletico_volt.jpg",
           weightGsm: 240,
           stockS: 10,
           stockM: 15,
@@ -996,7 +996,7 @@ export default function AdminPage() {
                           onChange={(e) =>
                             setNewKitForm({ ...newKitForm, image: e.target.value })
                           }
-                          placeholder="/jerseys/... or https://..."
+                          placeholder="/jerseys_3d/... or https://..."
                           className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>

@@ -123,7 +123,7 @@ export async function POST(request: Request) {
         club: data.club || data.name,
         dominantColor: data.dominantColor || "#0d0f14",
         accentColor: data.accentColor || "#f59e0b",
-        image: data.image || "/jerseys/772327275_1631936991885002_2167594161474870534_n.jpg",
+        image: data.image || "/jerseys_3d/atletico_volt.jpg",
         weightGsm: Number(data.weightGsm) || 240,
         fabric: data.fabric || "Aero-Fit Engineered Knit",
         badgeType: data.badgeType || "3D Heat-pressed liquid silicone crest",

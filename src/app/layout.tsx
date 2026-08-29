@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/jerseys/769691740_1833867730957043_5625470285242444661_n.jpg",
+        url: "/jerseys_3d/real_madrid_third.jpg",
         width: 1200,
         height: 630,
         alt: "Jersey verse Official Authentic Matchday Kits",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Jersey verse // The Mantle of Conviction",
     description: "Official matchday kits in Bangladesh with custom player name & number heat-press.",
-    images: ["/jerseys/769691740_1833867730957043_5625470285242444661_n.jpg"],
+    images: ["/jerseys_3d/real_madrid_third.jpg"],
   },
   icons: {
     icon: "/favicon.ico",

@@ -32,9 +32,9 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleInspectHeroKit = () => {
-    const flagship = JERSEYS_DATA[0]; // Flagship In-Stock Kit
-    handleOpenQuickView(flagship);
+  const handleInspectHeroKit = (jersey?: JerseyProduct) => {
+    const target = jersey || JERSEYS_DATA[0];
+    handleOpenQuickView(target);
   };
 
   const handleAddToCart = (jersey: JerseyProduct, size: string) => {
