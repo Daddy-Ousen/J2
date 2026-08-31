@@ -423,6 +423,7 @@ export default function AdminPage() {
           league: "Premier League",
           club: "",
           image: "/jerseys_3d/atletico_volt.jpg",
+          sleeve: "Half sleeve",
           dominantColor: "#0d0f14",
           accentColor: "#f59e0b",
           weightGsm: 240,
