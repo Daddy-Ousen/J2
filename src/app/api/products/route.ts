@@ -64,25 +64,43 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { id, price, stockS, stockM, stockL, stockXL, stockXXL, inStock, isFeatured } =
-      await request.json();
+    const data = await request.json();
+    const { id } = data;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
 
+    const updateData: Record<string, unknown> = {};
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.code !== undefined) updateData.code = data.code;
+    if (data.slug !== undefined) updateData.slug = data.slug;
+    if (data.subtitle !== undefined) updateData.subtitle = data.subtitle;
+    if (data.price !== undefined) updateData.price = Number(data.price);
+    if (data.originalPrice !== undefined) {
+      updateData.originalPrice = data.originalPrice ? Number(data.originalPrice) : null;
+    }
+    if (data.league !== undefined) updateData.league = data.league;
+    if (data.club !== undefined) updateData.club = data.club;
+    if (data.image !== undefined) updateData.image = data.image;
+    if (data.story !== undefined) updateData.story = data.story;
+    if (data.fabric !== undefined) updateData.fabric = data.fabric;
+    if (data.badgeType !== undefined) updateData.badgeType = data.badgeType;
+    if (data.weightGsm !== undefined) updateData.weightGsm = Number(data.weightGsm);
+    if (data.dominantColor !== undefined) updateData.dominantColor = data.dominantColor;
+    if (data.accentColor !== undefined) updateData.accentColor = data.accentColor;
+    if (data.stockS !== undefined) updateData.stockS = Number(data.stockS);
+    if (data.stockM !== undefined) updateData.stockM = Number(data.stockM);
+    if (data.stockL !== undefined) updateData.stockL = Number(data.stockL);
+    if (data.stockXL !== undefined) updateData.stockXL = Number(data.stockXL);
+    if (data.stockXXL !== undefined) updateData.stockXXL = Number(data.stockXXL);
+    if (data.inStock !== undefined) updateData.inStock = Boolean(data.inStock);
+    if (data.isFeatured !== undefined) updateData.isFeatured = Boolean(data.isFeatured);
+
     const updated = await prisma.product.update({
       where: { id },
-      data: {
-        ...(price !== undefined && { price: Number(price) }),
-        ...(stockS !== undefined && { stockS: Number(stockS) }),
-        ...(stockM !== undefined && { stockM: Number(stockM) }),
-        ...(stockL !== undefined && { stockL: Number(stockL) }),
-        ...(stockXL !== undefined && { stockXL: Number(stockXL) }),
-        ...(stockXXL !== undefined && { stockXXL: Number(stockXXL) }),
-        ...(inStock !== undefined && { inStock: Boolean(inStock) }),
-        ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true, product: updated });
@@ -90,6 +108,34 @@ export async function PATCH(request: Request) {
     console.error("Update product error:", error);
     return NextResponse.json(
       { error: "Failed to update product" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await getSessionUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete product" },
       { status: 500 }
     );
   }

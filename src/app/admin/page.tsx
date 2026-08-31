@@ -23,7 +23,50 @@ import {
   Flame,
   ArrowUpRight,
   ExternalLink,
+  Trash2,
+  Image as ImageIcon,
+  Sparkles,
+  Eye,
+  Layers,
+  Check,
 } from "lucide-react";
+
+const AVAILABLE_3D_PRESETS = [
+  { name: "Real Madrid 24/25 Home", path: "/jerseys_3d/real_madrid_home.jpg" },
+  { name: "Real Madrid 24/25 Third", path: "/jerseys_3d/real_madrid_third.jpg" },
+  { name: "FC Barcelona 24/25 Blaugrana", path: "/jerseys_3d/barcelona_blaugrana.jpg" },
+  { name: "FC Barcelona 24/25 Teal Third", path: "/jerseys_3d/barcelona_teal.jpg" },
+  { name: "Arsenal 24/25 Home", path: "/jerseys_3d/arsenal_home.jpg" },
+  { name: "Arsenal 24/25 Away Cannon", path: "/jerseys_3d/arsenal_away.jpg" },
+  { name: "Manchester United 24/25 Home", path: "/jerseys_3d/man_united_home.jpg" },
+  { name: "Manchester City 24/25 Home", path: "/jerseys_3d/mancity_home.jpg" },
+  { name: "Chelsea 24/25 Liquid Blue", path: "/jerseys_3d/chelsea_home.jpg" },
+  { name: "Liverpool 24/25 Anfield", path: "/jerseys_3d/liverpool_home.jpg" },
+  { name: "Bayern Munich 24/25 Home", path: "/jerseys_3d/bayern_home.jpg" },
+  { name: "Borussia Dortmund 24/25 Home", path: "/jerseys_3d/bvb_home.jpg" },
+  { name: "Inter Milan 24/25 Second Star", path: "/jerseys_3d/inter_milan.jpg" },
+  { name: "AC Milan 24/25 Away Rossoneri", path: "/jerseys_3d/ac_milan_away.jpg" },
+  { name: "Juventus 24/25 Home Polo", path: "/jerseys_3d/juventus_home.jpg" },
+  { name: "Atlético Madrid 24/25 Volt", path: "/jerseys_3d/atletico_volt.jpg" },
+  { name: "PSG 24/25 Home Hechter", path: "/jerseys_3d/psg_home.jpg" },
+  { name: "Al Nassr 24/25 Heritage", path: "/jerseys_3d/alnassr_heritage.jpg" },
+  { name: "Portugal 24/25 Euro", path: "/jerseys_3d/portugal_home.jpg" },
+  { name: "Argentina 24/25 Three Stars", path: "/jerseys_3d/argentina_home.jpg" },
+  { name: "Brazil 24/25 Canarinho", path: "/jerseys_3d/brazil_home.jpg" },
+  { name: "France 24/25 Rooster", path: "/jerseys_3d/france_home.jpg" },
+  { name: "England 24/25 Three Lions", path: "/jerseys_3d/england_home.jpg" },
+  { name: "Germany 24/25 DFB Eagle", path: "/jerseys_3d/germany_home.jpg" },
+  { name: "Italy 24/25 Azzurri", path: "/jerseys_3d/italy_home.jpg" },
+  { name: "Spain 24/25 Euro Champions", path: "/jerseys_3d/spain_home.jpg" },
+  { name: "Norway 24/25 Glacier", path: "/jerseys_3d/norway_glacier.jpg" },
+  { name: "FC Barcelona 1999 Centenary", path: "/jerseys_3d/barca_retro99.jpg" },
+  { name: "Manchester United 1999 Treble", path: "/jerseys_3d/manutd_retro99.jpg" },
+  { name: "Real Madrid 2002 Zidane Volley", path: "/jerseys_3d/realmadrid_retro02.jpg" },
+  { name: "AC Milan 2007 Athens Final", path: "/jerseys_3d/acmilan_retro07.jpg" },
+  { name: "Arsenal 2005/06 Highbury", path: "/jerseys_3d/arsenal_retro06.jpg" },
+  { name: "Juventus 2002/03 Fastweb", path: "/jerseys_3d/juventus_retro03.jpg" },
+  { name: "Brazil 2002 World Cup Penta", path: "/jerseys_3d/brazil_retro02.jpg" },
+];
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
@@ -47,7 +90,13 @@ export default function AdminPage() {
   const [paymentFilter, setPaymentFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Editing state for inventory & settings
+  // Full Product Edit Modal State
+  const [editingProductModal, setEditingProductModal] = useState<any | null>(null);
+  const [editProductForm, setEditProductForm] = useState<any>({});
+  const [savingFullProduct, setSavingFullProduct] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+
+  // Quick Price / Stock edit in table
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState<any>({});
   const [savingProduct, setSavingProduct] = useState(false);
@@ -60,20 +109,25 @@ export default function AdminPage() {
   const [newKitForm, setNewKitForm] = useState({
     code: "",
     name: "",
-    subtitle: "Matchday Kit",
+    subtitle: "Official Matchday Kit",
     price: 1200,
     originalPrice: 1500,
     league: "Premier League",
     club: "",
     image: "/jerseys_3d/atletico_volt.jpg",
+    dominantColor: "#0d0f14",
+    accentColor: "#f59e0b",
     weightGsm: 240,
+    fabric: "Aero-Fit Engineered Knit",
+    badgeType: "3D Heat-pressed liquid silicone crest",
     stockS: 10,
     stockM: 15,
     stockL: 20,
     stockXL: 10,
     stockXXL: 5,
     isFeatured: false,
-    story: "Authentic matchday edition jersey.",
+    inStock: true,
+    story: "Official matchday edition armor with bonded aerodynamic seams and moisture-wicking weave.",
   });
   const [creatingKitLoading, setCreatingKitLoading] = useState(false);
 
@@ -179,6 +233,127 @@ export default function AdminPage() {
     }
   };
 
+  const handleOpenFullEdit = (p: any) => {
+    setEditingProductModal(p);
+    setEditProductForm({
+      id: p.id,
+      name: p.name || "",
+      code: p.code || "",
+      slug: p.slug || "",
+      subtitle: p.subtitle || "",
+      price: p.price ?? 0,
+      originalPrice: p.originalPrice ?? "",
+      league: p.league || "Premier League",
+      club: p.club || "",
+      image: p.image || "/jerseys_3d/atletico_volt.jpg",
+      story: p.story || "",
+      fabric: p.fabric || "",
+      badgeType: p.badgeType || "",
+      weightGsm: p.weightGsm ?? 240,
+      dominantColor: p.dominantColor || "#0d0f14",
+      accentColor: p.accentColor || "#f59e0b",
+      stockS: p.stockS ?? 0,
+      stockM: p.stockM ?? 0,
+      stockL: p.stockL ?? 0,
+      stockXL: p.stockXL ?? 0,
+      stockXXL: p.stockXXL ?? 0,
+      isFeatured: Boolean(p.isFeatured),
+      inStock: Boolean(p.inStock ?? true),
+    });
+  };
+
+  const handleCloseFullEdit = () => {
+    setEditingProductModal(null);
+    setEditProductForm({});
+  };
+
+  const handleSaveFullEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductModal) return;
+    setSavingFullProduct(true);
+    try {
+      const res = await fetch("/api/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editProductForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditingProductModal(null);
+        loadDashboardData();
+      } else {
+        alert(data.error || "Failed to update product");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error saving product changes");
+    } finally {
+      setSavingFullProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = async (pId: string, pName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${pName}" from the store inventory? This cannot be undone.`)) {
+      return;
+    }
+    setDeletingProductId(pId);
+    try {
+      const res = await fetch(`/api/products?id=${encodeURIComponent(pId)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (editingProductModal?.id === pId) {
+          setEditingProductModal(null);
+        }
+        loadDashboardData();
+      } else {
+        alert(data.error || "Failed to delete product");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting product");
+    } finally {
+      setDeletingProductId(null);
+    }
+  };
+
+  const handleQuickToggleFeatured = async (p: any) => {
+    try {
+      const res = await fetch("/api/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: p.id,
+          isFeatured: !p.isFeatured,
+        }),
+      });
+      if (res.ok) {
+        loadDashboardData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleQuickToggleInStock = async (p: any) => {
+    try {
+      const res = await fetch("/api/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: p.id,
+          inStock: !p.inStock,
+        }),
+      });
+      if (res.ok) {
+        loadDashboardData();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleSaveProductEdit = async (pId: string) => {
     setSavingProduct(true);
     try {
@@ -243,20 +418,25 @@ export default function AdminPage() {
         setNewKitForm({
           code: "",
           name: "",
-          subtitle: "Matchday Kit",
+          subtitle: "Official Matchday Kit",
           price: 1200,
           originalPrice: 1500,
           league: "Premier League",
           club: "",
           image: "/jerseys_3d/atletico_volt.jpg",
+          dominantColor: "#0d0f14",
+          accentColor: "#f59e0b",
           weightGsm: 240,
+          fabric: "Aero-Fit Engineered Knit",
+          badgeType: "3D Heat-pressed liquid silicone crest",
           stockS: 10,
           stockM: 15,
           stockL: 20,
           stockXL: 10,
           stockXXL: 5,
           isFeatured: false,
-          story: "Authentic matchday edition jersey.",
+          inStock: true,
+          story: "Official matchday edition armor with bonded aerodynamic seams and moisture-wicking weave.",
         });
         loadDashboardData();
       }
@@ -857,10 +1037,10 @@ export default function AdminPage() {
             <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="font-mono text-sm font-bold text-white uppercase">
-                  MATCHDAY KIT INVENTORY & PRICING
+                  MATCHDAY KIT INVENTORY & PRODUCT MANAGEMENT
                 </h3>
                 <p className="font-mono text-xs text-zinc-400 mt-0.5">
-                  Update base prices in BDT and adjust stock counts per size (S/M/L/XL/XXL).
+                  Full control over kit titles, 3D photos, descriptions, technical specs, pricing, and live inventory.
                 </p>
               </div>
 
@@ -870,25 +1050,447 @@ export default function AdminPage() {
                     type="text"
                     value={inventorySearch}
                     onChange={(e) => setInventorySearch(e.target.value)}
-                    placeholder="Search kit or club..."
-                    className="w-48 sm:w-60 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 pl-8 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                    placeholder="Search kit, club, or serial..."
+                    className="w-48 sm:w-64 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 pl-8 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
                   />
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
                 </div>
 
                 <button
                   onClick={() => setIsCreatingKit(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors flex-shrink-0"
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors flex-shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
                 >
+                  <Sparkles className="h-3.5 w-3.5" />
                   <span>+ ADD NEW KIT</span>
                 </button>
               </div>
             </div>
 
-            {/* Modal for Creating New Kit */}
+            {/* ============================================================ */}
+            {/* FULL PRODUCT EDIT MODAL */}
+            {/* ============================================================ */}
+            {editingProductModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+                <div className="w-full max-w-4xl rounded-3xl border border-amber-500/50 bg-zinc-950 p-6 sm:p-8 shadow-[0_0_100px_rgba(245,158,11,0.25)] my-8 max-h-[90vh] overflow-y-auto">
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-amber-500/20 text-amber-300 px-2 py-0.5 font-mono text-[10px] font-bold">
+                          EDITING PRODUCT
+                        </span>
+                        <span className="font-mono text-xs text-zinc-400">
+                          ID: {editingProductModal.id}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-white tracking-tight">
+                        {editProductForm.name || "Edit Kit Information"}
+                      </h3>
+                    </div>
+
+                    <button
+                      onClick={handleCloseFullEdit}
+                      className="rounded-xl p-2 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <XCircle className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  {/* Edit Form */}
+                  <form onSubmit={handleSaveFullEdit} className="space-y-6 font-mono text-xs">
+                    {/* Top Grid: Photo Preview & Presets + Identity */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Photo Preview & Path Box */}
+                      <div className="md:col-span-1 space-y-3">
+                        <label className="block text-[10px] uppercase text-amber-400 font-bold">
+                          Photo / 3D Render Preview
+                        </label>
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/15 bg-zinc-900 shadow-inner flex items-center justify-center">
+                          {editProductForm.image ? (
+                            <Image
+                              src={editProductForm.image}
+                              alt={editProductForm.name || "Preview"}
+                              fill
+                              className="object-cover object-center filter contrast-[1.05]"
+                            />
+                          ) : (
+                            <div className="text-zinc-600 text-center p-4">
+                              <ImageIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                              <span>No image set</span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-black/20 pointer-events-none" />
+                          <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/75 px-2 py-1 text-[10px] text-zinc-300 backdrop-blur-md truncate">
+                            {editProductForm.image || "No path"}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                            Select 3D Render Preset
+                          </label>
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  image: e.target.value,
+                                });
+                              }
+                            }}
+                            className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
+                          >
+                            <option value="">-- Choose from 34 Renders --</option>
+                            {AVAILABLE_3D_PRESETS.map((preset) => (
+                              <option key={preset.path} value={preset.path}>
+                                {preset.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                            Custom Image Path or URL
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={editProductForm.image || ""}
+                            onChange={(e) =>
+                              setEditProductForm({ ...editProductForm, image: e.target.value })
+                            }
+                            placeholder="/jerseys_3d/... or https://..."
+                            className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* General Identity & Pricing Box */}
+                      <div className="md:col-span-2 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Kit Title / Display Name *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={editProductForm.name || ""}
+                              onChange={(e) =>
+                                setEditProductForm({ ...editProductForm, name: e.target.value })
+                              }
+                              placeholder="e.g. FC Barcelona 24/25 Blaugrana Matchday"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2.5 text-white font-bold focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Unique Serial Code *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={editProductForm.code || ""}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  code: e.target.value.toUpperCase(),
+                                })
+                              }
+                              placeholder="e.g. JV-FCB/BLAU"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Subtitle / Edition Weave
+                            </label>
+                            <input
+                              type="text"
+                              value={editProductForm.subtitle || ""}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  subtitle: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. Spotify Sunburst Matchday Aero-Fit"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Club / Team Name
+                            </label>
+                            <input
+                              type="text"
+                              value={editProductForm.club || ""}
+                              onChange={(e) =>
+                                setEditProductForm({ ...editProductForm, club: e.target.value })
+                              }
+                              placeholder="e.g. FC Barcelona"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              League / Category
+                            </label>
+                            <select
+                              value={editProductForm.league || "Premier League"}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  league: e.target.value,
+                                })
+                              }
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            >
+                              <option value="Premier League">Premier League</option>
+                              <option value="La Liga">La Liga</option>
+                              <option value="Serie A">Serie A</option>
+                              <option value="Bundesliga">Bundesliga</option>
+                              <option value="Saudi Pro League">Saudi Pro League</option>
+                              <option value="International">International</option>
+                              <option value="Retro">Retro Vault</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Price in BDT (৳) *
+                            </label>
+                            <input
+                              type="number"
+                              required
+                              value={editProductForm.price ?? ""}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  price: Number(e.target.value),
+                                })
+                              }
+                              className="w-full rounded-xl border border-amber-400 bg-zinc-900 px-3 py-2 font-bold text-amber-300 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Original MRP Price (৳) (Optional)
+                            </label>
+                            <input
+                              type="number"
+                              value={editProductForm.originalPrice ?? ""}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  originalPrice: e.target.value ? Number(e.target.value) : null,
+                                })
+                              }
+                              placeholder="e.g. 1500"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-zinc-300 focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Fabric Weight (GSM)
+                            </label>
+                            <input
+                              type="number"
+                              value={editProductForm.weightGsm ?? 240}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  weightGsm: Number(e.target.value),
+                                })
+                              }
+                              placeholder="240"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                              Product URL Slug
+                            </label>
+                            <input
+                              type="text"
+                              value={editProductForm.slug || ""}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  slug: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. fcb-blaugrana-2425"
+                              className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-zinc-400 focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Status Toggles */}
+                        <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-white/10">
+                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border border-white/10 bg-zinc-900/60 px-3.5 py-2 hover:border-white/20">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(editProductForm.inStock)}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  inStock: e.target.checked,
+                                })
+                              }
+                              className="rounded border-white/20 text-emerald-500 focus:ring-emerald-400 h-4 w-4"
+                            />
+                            <span className={editProductForm.inStock ? "text-emerald-400 font-bold" : "text-zinc-400"}>
+                              {editProductForm.inStock ? "● IN STOCK & ACTIVE" : "○ MARK AS SOLD OUT"}
+                            </span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border border-white/10 bg-zinc-900/60 px-3.5 py-2 hover:border-white/20">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(editProductForm.isFeatured)}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  isFeatured: e.target.checked,
+                                })
+                              }
+                              className="rounded border-white/20 text-amber-500 focus:ring-amber-400 h-4 w-4"
+                            />
+                            <span className={editProductForm.isFeatured ? "text-amber-400 font-bold" : "text-zinc-400"}>
+                              ★ FEATURED ON STOREFRONT
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Middle Section: Technical Specs & Description */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/10 pt-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Product Description / Heritage Story *
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={editProductForm.story || ""}
+                          onChange={(e) =>
+                            setEditProductForm({ ...editProductForm, story: e.target.value })
+                          }
+                          placeholder="Write the full matchday story and heritage description of the kit..."
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3.5 py-2.5 text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Fabric Specification
+                        </label>
+                        <input
+                          type="text"
+                          value={editProductForm.fabric || ""}
+                          onChange={(e) =>
+                            setEditProductForm({ ...editProductForm, fabric: e.target.value })
+                          }
+                          placeholder="e.g. Aero-Fit Engineered Knit"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Badge & Crest Construction
+                        </label>
+                        <input
+                          type="text"
+                          value={editProductForm.badgeType || ""}
+                          onChange={(e) =>
+                            setEditProductForm({ ...editProductForm, badgeType: e.target.value })
+                          }
+                          placeholder="e.g. 3D Heat-pressed liquid silicone crest"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stock Counts Grid */}
+                    <div className="border-t border-white/10 pt-4">
+                      <label className="block text-[10px] uppercase text-zinc-400 mb-2">
+                        Stock Quantities by Size
+                      </label>
+                      <div className="grid grid-cols-5 gap-3">
+                        {["stockS", "stockM", "stockL", "stockXL", "stockXXL"].map((key) => (
+                          <div key={key} className="rounded-xl border border-white/10 bg-zinc-900 p-2 text-center">
+                            <span className="block text-[10px] font-bold text-amber-400 uppercase mb-1">
+                              Size {key.replace("stock", "")}
+                            </span>
+                            <input
+                              type="number"
+                              value={editProductForm[key] ?? 0}
+                              onChange={(e) =>
+                                setEditProductForm({
+                                  ...editProductForm,
+                                  [key]: Number(e.target.value),
+                                })
+                              }
+                              className="w-full text-center rounded-lg border border-white/20 bg-zinc-950 py-1.5 text-white font-bold focus:border-amber-400 focus:outline-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Modal Actions Footer */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/10 pt-5">
+                      <button
+                        type="button"
+                        disabled={deletingProductId === editingProductModal.id}
+                        onClick={() => handleDeleteProduct(editingProductModal.id, editProductForm.name || "this kit")}
+                        className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 px-4 py-2.5 text-red-300 font-bold transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>{deletingProductId === editingProductModal.id ? "DELETING..." : "DELETE PRODUCT"}</span>
+                      </button>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={handleCloseFullEdit}
+                          className="px-5 py-2.5 rounded-xl border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={savingFullProduct}
+                          className="flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-2.5 font-bold text-black hover:bg-amber-300 transition-colors shadow-[0_0_20px_rgba(245,158,11,0.3)] disabled:opacity-50"
+                        >
+                          <Save className="h-4 w-4" />
+                          <span>{savingFullProduct ? "SAVING CHANGES..." : "SAVE PRODUCT INFORMATION"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* ============================================================ */}
+            {/* MODAL FOR CREATING NEW KIT */}
+            {/* ============================================================ */}
             {isCreatingKit && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-                <div className="w-full max-w-2xl rounded-3xl border border-amber-500/40 bg-zinc-950 p-6 sm:p-8 shadow-[0_0_80px_rgba(245,158,11,0.2)] my-8">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+                <div className="w-full max-w-3xl rounded-3xl border border-amber-500/40 bg-zinc-950 p-6 sm:p-8 shadow-[0_0_80px_rgba(245,158,11,0.2)] my-8 max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
                     <h3 className="font-mono text-sm font-bold text-white uppercase">
                       ADD NEW MATCHDAY KIT TO REPOSITORY
@@ -903,7 +1505,7 @@ export default function AdminPage() {
 
                   <form onSubmit={handleCreateKit} className="space-y-4 font-mono text-xs">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
+                      <div className="sm:col-span-2">
                         <label className="block text-[10px] uppercase text-zinc-400 mb-1">
                           Kit Title *
                         </label>
@@ -914,8 +1516,8 @@ export default function AdminPage() {
                           onChange={(e) =>
                             setNewKitForm({ ...newKitForm, name: e.target.value })
                           }
-                          placeholder="e.g. Real Madrid 24/25 Home"
-                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                          placeholder="e.g. Real Madrid 24/25 Home Classic White"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none font-bold"
                         />
                       </div>
 
@@ -937,6 +1539,21 @@ export default function AdminPage() {
 
                       <div>
                         <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Subtitle / Edition
+                        </label>
+                        <input
+                          type="text"
+                          value={newKitForm.subtitle}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, subtitle: e.target.value })
+                          }
+                          placeholder="e.g. Official Matchday Armor"
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
                           League / Category
                         </label>
                         <select
@@ -952,7 +1569,7 @@ export default function AdminPage() {
                           <option value="Bundesliga">Bundesliga</option>
                           <option value="Saudi Pro League">Saudi Pro League</option>
                           <option value="International">International</option>
-                          <option value="Retro">Retro</option>
+                          <option value="Retro">Retro Vault</option>
                         </select>
                       </div>
 
@@ -982,21 +1599,67 @@ export default function AdminPage() {
                           onChange={(e) =>
                             setNewKitForm({ ...newKitForm, price: Number(e.target.value) })
                           }
-                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                          className="w-full rounded-xl border border-amber-400 bg-zinc-900 px-3 py-2 text-amber-300 font-bold focus:outline-none"
                         />
                       </div>
 
                       <div>
                         <label className="block text-[10px] uppercase text-zinc-400 mb-1">
-                          Image Asset Path or URL
+                          Original MRP (৳) (Optional)
                         </label>
                         <input
-                          type="text"
-                          value={newKitForm.image}
+                          type="number"
+                          value={newKitForm.originalPrice}
                           onChange={(e) =>
-                            setNewKitForm({ ...newKitForm, image: e.target.value })
+                            setNewKitForm({ ...newKitForm, originalPrice: Number(e.target.value) })
                           }
-                          placeholder="/jerseys_3d/... or https://..."
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Image Asset Path or Preset
+                        </label>
+                        <div className="flex gap-2">
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setNewKitForm({ ...newKitForm, image: e.target.value });
+                              }
+                            }}
+                            className="w-1/2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                          >
+                            <option value="">-- Choose 3D Preset --</option>
+                            {AVAILABLE_3D_PRESETS.map((p) => (
+                              <option key={p.path} value={p.path}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={newKitForm.image}
+                            onChange={(e) =>
+                              setNewKitForm({ ...newKitForm, image: e.target.value })
+                            }
+                            placeholder="/jerseys_3d/... or https://..."
+                            className="w-1/2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
+                          Description / Story
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={newKitForm.story}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, story: e.target.value })
+                          }
                           className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>
@@ -1040,7 +1703,7 @@ export default function AdminPage() {
                       <button
                         type="submit"
                         disabled={creatingKitLoading}
-                        className="rounded-xl bg-amber-400 px-6 py-2.5 font-bold text-black hover:bg-amber-300 disabled:opacity-50"
+                        className="rounded-xl bg-amber-400 px-6 py-2.5 font-bold text-black hover:bg-amber-300 disabled:opacity-50 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                       >
                         {creatingKitLoading ? "CREATING..." : "PUBLISH KIT TO STORE"}
                       </button>
@@ -1050,6 +1713,7 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Product List */}
             <div className="space-y-4">
               {products
                 .filter(
@@ -1062,127 +1726,169 @@ export default function AdminPage() {
                 .map((p) => {
                   const isEditing = editingProductId === p.id;
 
-                return (
-                  <div
-                    key={p.id}
-                    className={`rounded-2xl border bg-zinc-950 p-5 transition-all ${
-                      isEditing ? "border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.15)]" : "border-white/10"
-                    }`}
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      {/* Product identity */}
-                      <div className="flex items-center gap-4">
-                        <div className="relative h-16 w-16 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 flex-shrink-0">
-                          <Image src={p.image} alt={p.name} fill className="object-cover" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[9px] text-zinc-500 font-bold">{p.code}</span>
-                            <span className="rounded bg-white/5 px-2 py-0.2 font-mono text-[9px] text-zinc-400">
-                              {p.league}
-                            </span>
-                            {p.isFeatured && (
-                              <span className="rounded bg-amber-500/20 text-amber-300 text-[9px] font-mono px-1.5 py-0.5 font-bold">
-                                FEATURED
+                  return (
+                    <div
+                      key={p.id}
+                      className={`rounded-2xl border bg-zinc-950 p-5 transition-all ${
+                        isEditing ? "border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.15)]" : "border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        {/* Product identity */}
+                        <div className="flex items-center gap-4">
+                          <div className="relative h-20 w-16 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 flex-shrink-0 shadow-md">
+                            <Image src={p.image} alt={p.name} fill className="object-cover" />
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-[10px] text-amber-400 font-bold">{p.code}</span>
+                              <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-400">
+                                {p.league}
                               </span>
+                              {p.isFeatured && (
+                                <span className="rounded bg-amber-500/20 text-amber-300 text-[9px] font-mono px-1.5 py-0.5 font-bold flex items-center gap-1">
+                                  ★ FEATURED
+                                </span>
+                              )}
+                              <span
+                                className={`rounded px-1.5 py-0.5 text-[9px] font-mono font-bold ${
+                                  p.inStock ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
+                                }`}
+                              >
+                                {p.inStock ? "IN STOCK" : "OUT OF STOCK"}
+                              </span>
+                            </div>
+                            <h4 className="text-base font-bold text-white mt-1">{p.name}</h4>
+                            <p className="font-mono text-[11px] text-zinc-400 line-clamp-1">{p.subtitle}</p>
+                            {p.story && (
+                              <p className="font-sans text-[11px] text-zinc-500 line-clamp-1 mt-0.5 max-w-xl">
+                                {p.story}
+                              </p>
                             )}
                           </div>
-                          <h4 className="text-base font-bold text-white mt-0.5">{p.name}</h4>
-                          <p className="font-mono text-[11px] text-zinc-400">{p.subtitle}</p>
                         </div>
-                      </div>
 
-                      {/* Stock & Price Controls */}
-                      {isEditing ? (
-                        <div className="flex flex-wrap items-center gap-3">
-                          {/* Price input */}
-                          <div>
-                            <label className="block font-mono text-[9px] text-zinc-400 uppercase">
-                              Price (BDT)
-                            </label>
-                            <input
-                              type="number"
-                              value={productForm.price}
-                              onChange={(e) =>
-                                setProductForm({ ...productForm, price: e.target.value })
-                              }
-                              className="w-24 rounded-lg border border-amber-400 bg-zinc-900 px-2 py-1 font-mono text-xs font-bold text-amber-300"
-                            />
-                          </div>
-
-                          {/* Stocks */}
-                          {["S", "M", "L", "XL", "XXL"].map((size) => (
-                            <div key={size}>
+                        {/* Stock & Price Controls & Edit Actions */}
+                        {isEditing ? (
+                          <div className="flex flex-wrap items-center gap-3">
+                            {/* Price input */}
+                            <div>
                               <label className="block font-mono text-[9px] text-zinc-400 uppercase">
-                                {size}
+                                Price (BDT)
                               </label>
                               <input
                                 type="number"
-                                value={productForm[`stock${size}`]}
+                                value={productForm.price}
                                 onChange={(e) =>
-                                  setProductForm({
-                                    ...productForm,
-                                    [`stock${size}`]: e.target.value,
-                                  })
+                                  setProductForm({ ...productForm, price: e.target.value })
                                 }
-                                className="w-14 rounded-lg border border-white/20 bg-zinc-900 px-2 py-1 font-mono text-xs text-white"
+                                className="w-24 rounded-lg border border-amber-400 bg-zinc-900 px-2 py-1 font-mono text-xs font-bold text-amber-300"
                               />
                             </div>
-                          ))}
 
-                          <button
-                            disabled={savingProduct}
-                            onClick={() => handleSaveProductEdit(p.id)}
-                            className="flex items-center gap-1 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)] mt-3 sm:mt-0"
-                          >
-                            <Save className="h-3.5 w-3.5" />
-                            <span>{savingProduct ? "SAVING..." : "SAVE"}</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-6">
-                          <div>
-                            <span className="font-mono text-[9px] text-zinc-500 uppercase">PRICE</span>
-                            <div className="font-mono text-base font-bold text-amber-400">
-                              ৳{p.price.toLocaleString()} BDT
+                            {/* Stocks */}
+                            {["S", "M", "L", "XL", "XXL"].map((size) => (
+                              <div key={size}>
+                                <label className="block font-mono text-[9px] text-zinc-400 uppercase">
+                                  {size}
+                                </label>
+                                <input
+                                  type="number"
+                                  value={productForm[`stock${size}`]}
+                                  onChange={(e) =>
+                                    setProductForm({
+                                      ...productForm,
+                                      [`stock${size}`]: e.target.value,
+                                    })
+                                  }
+                                  className="w-14 rounded-lg border border-white/20 bg-zinc-900 px-2 py-1 font-mono text-xs text-white"
+                                />
+                              </div>
+                            ))}
+
+                            <button
+                              disabled={savingProduct}
+                              onClick={() => handleSaveProductEdit(p.id)}
+                              className="flex items-center gap-1 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)] mt-3 sm:mt-0"
+                            >
+                              <Save className="h-3.5 w-3.5" />
+                              <span>{savingProduct ? "SAVING..." : "SAVE"}</span>
+                            </button>
+
+                            <button
+                              onClick={() => setEditingProductId(null)}
+                              className="px-3 py-2 text-zinc-400 hover:text-white text-xs font-mono"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                            <div>
+                              <span className="font-mono text-[9px] text-zinc-500 uppercase">PRICE</span>
+                              <div className="font-mono text-base font-bold text-amber-400">
+                                ৳{p.price.toLocaleString()} BDT
+                              </div>
+                            </div>
+
+                            {/* Stock counts */}
+                            <div className="flex items-center gap-1.5 font-mono text-xs">
+                              <span className="text-zinc-500 text-[10px]">SIZES:</span>
+                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">S:{p.stockS}</span>
+                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">M:{p.stockM}</span>
+                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">L:{p.stockL}</span>
+                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XL:{p.stockXL}</span>
+                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XXL:{p.stockXXL}</span>
+                            </div>
+
+                            {/* Actions Group */}
+                            <div className="flex items-center gap-2">
+                              {/* Full Edit Modal Trigger Button */}
+                              <button
+                                onClick={() => handleOpenFullEdit(p)}
+                                className="flex items-center gap-1.5 rounded-xl bg-amber-400/15 border border-amber-500/40 hover:bg-amber-400 hover:text-black px-3.5 py-2 font-mono text-xs font-bold text-amber-300 transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                                title="Edit full description, 3D photo, name, specs, price & stocks"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                                <span>EDIT PRODUCT INFO</span>
+                              </button>
+
+                              {/* Quick inline price/stock toggle */}
+                              <button
+                                onClick={() => {
+                                  setEditingProductId(p.id);
+                                  setProductForm({
+                                    price: p.price,
+                                    stockS: p.stockS,
+                                    stockM: p.stockM,
+                                    stockL: p.stockL,
+                                    stockXL: p.stockXL,
+                                    stockXXL: p.stockXXL,
+                                    isFeatured: p.isFeatured,
+                                    inStock: p.inStock,
+                                  });
+                                }}
+                                className="rounded-xl bg-zinc-900 border border-white/10 hover:border-white/30 px-2.5 py-2 font-mono text-xs text-zinc-400 hover:text-white transition-colors"
+                                title="Quick Price & Stock Adjustment"
+                              >
+                                <span>⚡ QUICK</span>
+                              </button>
+
+                              {/* Delete Button */}
+                              <button
+                                onClick={() => handleDeleteProduct(p.id, p.name)}
+                                className="rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/30 p-2 text-red-400 hover:text-red-300 transition-colors"
+                                title="Delete Kit"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
                             </div>
                           </div>
-
-                          {/* Stock counts */}
-                          <div className="flex items-center gap-2 font-mono text-xs">
-                            <span className="text-zinc-500 text-[10px]">STOCK:</span>
-                            <span className="rounded bg-zinc-900 px-2 py-1 text-zinc-300">S: {p.stockS}</span>
-                            <span className="rounded bg-zinc-900 px-2 py-1 text-zinc-300">M: {p.stockM}</span>
-                            <span className="rounded bg-zinc-900 px-2 py-1 text-zinc-300">L: {p.stockL}</span>
-                            <span className="rounded bg-zinc-900 px-2 py-1 text-zinc-300">XL: {p.stockXL}</span>
-                            <span className="rounded bg-zinc-900 px-2 py-1 text-zinc-300">XXL: {p.stockXXL}</span>
-                          </div>
-
-                          <button
-                            onClick={() => {
-                              setEditingProductId(p.id);
-                              setProductForm({
-                                price: p.price,
-                                stockS: p.stockS,
-                                stockM: p.stockM,
-                                stockL: p.stockL,
-                                stockXL: p.stockXL,
-                                stockXXL: p.stockXXL,
-                                isFeatured: p.isFeatured,
-                                inStock: p.inStock,
-                              });
-                            }}
-                            className="flex items-center gap-1 rounded-xl bg-zinc-900 border border-white/10 hover:border-amber-400 px-3.5 py-2 font-mono text-xs text-amber-300 transition-colors"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                            <span>EDIT PRICE / STOCK</span>
-                          </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         )}
