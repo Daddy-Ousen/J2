@@ -2,25 +2,36 @@ export interface JerseyProduct {
   id: string;
   code: string;
   name: string;
+  slug?: string;
   subtitle: string;
   price: number;
-  edition: string;
-  colorway: string;
+  originalPrice?: number | null;
+  edition?: string;
+  league?: string;
+  club?: string;
+  colorway?: string;
   dominantColor: string;
   accentColor: string;
   image: string;
-  fallbackGradient: string;
+  fallbackGradient?: string;
   weightGsm: number;
   fabric: string;
   badgeType: string;
   sleeve?: "Full sleeve" | "Half sleeve" | string;
   kitType?: "Home" | "Away" | "Third" | "Retro" | string;
   story: string;
-  specs: {
+  specs?: {
     label: string;
     value: string;
   }[];
-  availableSizes: string[];
+  availableSizes?: string[];
+  stockS?: number;
+  stockM?: number;
+  stockL?: number;
+  stockXL?: number;
+  stockXXL?: number;
+  isFeatured?: boolean;
+  inStock?: boolean;
 }
 
 export interface ActSection {

@@ -14,10 +14,11 @@ if (typeof window !== "undefined") {
 }
 
 interface Act3JerseyMomentProps {
+  products?: JerseyProduct[];
   onInspectHeroKit?: (jersey: JerseyProduct) => void;
 }
 
-export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
+export function Act3JerseyMoment({ products, onInspectHeroKit }: Act3JerseyMomentProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const jerseyStageRef = useRef<HTMLDivElement>(null);
@@ -28,19 +29,23 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
   const [hasFlashed, setHasFlashed] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
 
+  const availableKits = products && products.length > 0 ? products : JERSEYS_DATA;
+
   // Pick a random available kit on mount
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * JERSEYS_DATA.length);
-    setCurrentIdx(randomIndex);
-  }, []);
+    if (availableKits.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableKits.length);
+      setCurrentIdx(randomIndex);
+    }
+  }, [availableKits.length]);
 
-  const heroJersey = JERSEYS_DATA[currentIdx] || JERSEYS_DATA[0];
+  const heroJersey = availableKits[currentIdx % availableKits.length] || availableKits[0] || JERSEYS_DATA[0];
 
   const handleReroll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    let nextIdx = Math.floor(Math.random() * JERSEYS_DATA.length);
-    if (nextIdx === currentIdx && JERSEYS_DATA.length > 1) {
-      nextIdx = (currentIdx + 1) % JERSEYS_DATA.length;
+    let nextIdx = Math.floor(Math.random() * availableKits.length);
+    if (nextIdx === currentIdx && availableKits.length > 1) {
+      nextIdx = (currentIdx + 1) % availableKits.length;
     }
     setCurrentIdx(nextIdx);
 

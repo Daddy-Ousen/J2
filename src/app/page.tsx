@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/ui/Navbar";
 import { ScrollProgressBar } from "@/components/scrollytelling/ScrollProgressBar";
 import { Act1Origin } from "@/components/scrollytelling/Act1Origin";
@@ -14,11 +14,26 @@ import { JerseyProduct, CustomKitConfig } from "@/types";
 import { Check, ShoppingBag, Sparkles } from "lucide-react";
 
 export default function Home() {
+  const [liveProducts, setLiveProducts] = useState<JerseyProduct[]>(JERSEYS_DATA);
   const [activeModalJersey, setActiveModalJersey] = useState<JerseyProduct | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ title: string; isBespoke?: boolean } | null>(null);
+
+  // Sync live products from PostgreSQL database (with updated photos/descriptions from Admin Desk)
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          setLiveProducts(data.products);
+        }
+      })
+      .catch((err) => {
+        console.log("Using static initial fallback:", err);
+      });
+  }, []);
 
   const showToast = (title: string, isBespoke = false) => {
     setToastMessage({ title, isBespoke });
@@ -33,23 +48,27 @@ export default function Home() {
   };
 
   const handleInspectHeroKit = (jersey?: JerseyProduct) => {
-    const target = jersey || JERSEYS_DATA[0];
+    const target = jersey || liveProducts[0] || JERSEYS_DATA[0];
     handleOpenQuickView(target);
   };
 
-  const handleAddToCart = (jersey: JerseyProduct, size: string) => {
+  const handleAddToCart = (jersey: JerseyProduct, size: string, customConfig?: CustomKitConfig) => {
     setCartItems((prev) => {
       const existingIdx = prev.findIndex(
-        (i) => i.jersey.id === jersey.id && i.size === size && !i.customConfig
+        (i) => i.jersey.id === jersey.id && i.size === size && !i.customConfig && !customConfig
       );
-      if (existingIdx > -1) {
+      if (existingIdx > -1 && !customConfig) {
         const updated = [...prev];
         updated[existingIdx].quantity += 1;
         return updated;
       }
-      return [...prev, { jersey, size, quantity: 1 }];
+      return [...prev, { jersey, size, quantity: 1, customConfig }];
     });
-    showToast(`Added ${jersey.name} (Size ${size}) to your bag.`);
+    showToast(
+      customConfig
+        ? `Custom ${jersey.name} (${customConfig.playerName} #${customConfig.jerseyNumber}) added to bag!`
+        : `Added ${jersey.name} (Size ${size}) to your bag.`
+    );
   };
 
   const handleAddBespokeToBag = (customKit: JerseyProduct, config: CustomKitConfig) => {
@@ -90,10 +109,14 @@ export default function Home() {
         <Act2Struggle />
 
         {/* ACT III: THE MANTLE / JERSEY MOMENT */}
-        <Act3JerseyMoment onInspectHeroKit={handleInspectHeroKit} />
+        <Act3JerseyMoment
+          products={liveProducts}
+          onInspectHeroKit={handleInspectHeroKit}
+        />
 
         {/* ACT IV: THE ARMOR / 2026 CAPSULE & STUDIO CONFIGURATOR */}
         <Act4ProductCTA
+          products={liveProducts}
           onOpenQuickView={handleOpenQuickView}
           onAddToCart={handleAddToCart}
           onAddBespokeToBag={handleAddBespokeToBag}

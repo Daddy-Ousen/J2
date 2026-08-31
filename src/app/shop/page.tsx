@@ -8,6 +8,7 @@ import { CartDrawer, CartItem } from "@/components/ui/CartDrawer";
 import { QuickViewModal } from "@/components/ui/QuickViewModal";
 import { JerseyProduct, CustomKitConfig } from "@/types";
 import { getStoredCart, saveStoredCart } from "@/lib/cartStore";
+import { JERSEYS_DATA } from "@/data/jerseys";
 import {
   Search,
   SlidersHorizontal,
@@ -35,8 +36,8 @@ const LEAGUES = [
 const SIZES = ["All", "S", "M", "L", "XL", "XXL"];
 
 export default function ShopPage() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(JERSEYS_DATA);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedLeague, setSelectedLeague] = useState("All");
   const [selectedSize, setSelectedSize] = useState("All");
@@ -72,7 +73,6 @@ export default function ShopPage() {
   };
 
   const fetchProducts = async () => {
-    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (selectedLeague !== "All") params.set("league", selectedLeague);
@@ -83,9 +83,11 @@ export default function ShopPage() {
 
       const res = await fetch(`/api/products?${params.toString()}`);
       const data = await res.json();
-      if (data.products) setProducts(data.products);
+      if (data.products && Array.isArray(data.products)) {
+        setProducts(data.products);
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Shop product sync error:", e);
     } finally {
       setLoading(false);
     }
@@ -461,9 +463,9 @@ export default function ShopPage() {
           jersey={inspectProduct}
           isOpen={!!inspectProduct}
           onClose={() => setInspectProduct(null)}
-          onAddToCart={(jersey, size) => {
+          onAddToCart={(jersey, size, customConfig) => {
             setCartItems((prev) => {
-              const updated = [...prev, { jersey, size, quantity: 1 }];
+              const updated = [...prev, { jersey, size, quantity: 1, customConfig }];
               saveStoredCart(updated);
               return updated;
             });

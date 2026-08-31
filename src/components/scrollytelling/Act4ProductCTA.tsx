@@ -27,12 +27,14 @@ if (typeof window !== "undefined") {
 }
 
 interface Act4ProductCTAProps {
+  products?: JerseyProduct[];
   onOpenQuickView: (jersey: JerseyProduct) => void;
   onAddToCart: (jersey: JerseyProduct, size: string) => void;
   onAddBespokeToBag?: (customKit: JerseyProduct, config: CustomKitConfig) => void;
 }
 
 export function Act4ProductCTA({
+  products,
   onOpenQuickView,
   onAddToCart,
   onAddBespokeToBag,
@@ -56,11 +58,14 @@ export function Act4ProductCTA({
   const [subscribed, setSubscribed] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
-  const filteredJerseys = JERSEYS_DATA.filter((j) => {
+  const availableJerseys = products && products.length > 0 ? products : JERSEYS_DATA;
+
+  const filteredJerseys = availableJerseys.filter((j) => {
     if (activeCategory === "All") return true;
-    if (activeCategory === "Retro") return j.id.includes("retro") || j.name.toLowerCase().includes("retro") || (j as any).edition?.includes("Retro");
-    if (activeCategory === "International") return j.name.includes("Portugal") || j.name.includes("Argentina") || j.name.includes("Brazil") || j.name.includes("France") || j.name.includes("England") || j.name.includes("Germany") || j.name.includes("Italy") || j.name.includes("Spain") || j.name.includes("Norway");
-    if (activeCategory === "Clubs") return !j.id.includes("retro") && !j.name.includes("Portugal") && !j.name.includes("Argentina") && !j.name.includes("Brazil") && !j.name.includes("France") && !j.name.includes("England") && !j.name.includes("Germany") && !j.name.includes("Italy") && !j.name.includes("Spain") && !j.name.includes("Norway");
+    if (activeCategory === "Featured") return j.isFeatured;
+    if (activeCategory === "Retro") return j.league === "Retro" || j.id.includes("retro") || j.name.toLowerCase().includes("retro");
+    if (activeCategory === "International") return j.league === "International" || j.name.includes("Portugal") || j.name.includes("Argentina") || j.name.includes("Brazil");
+    if (activeCategory === "Clubs") return j.league !== "Retro" && j.league !== "International";
     return true;
   });
 
@@ -181,9 +186,9 @@ export function Act4ProductCTA({
         {/* Category Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-white/5 font-mono text-xs">
           {[
-            { id: "All", label: `ALL MATCHDAY KITS (${JERSEYS_DATA.length})` },
-            { id: "Clubs", label: "24/25 CLUBS" },
-            { id: "International", label: "EURO & COPA" },
+            { id: "All", label: `ALL MATCHDAY KITS (${availableJerseys.length})` },
+            { id: "Featured", label: "★ FEATURED ON STOREFRONT" },
+            { id: "Clubs", label: "26/27 CLUBS" },
             { id: "Retro", label: "LEGENDARY RETRO VAULT" },
           ].map((cat) => (
             <button
@@ -209,6 +214,7 @@ export function Act4ProductCTA({
         {filteredJerseys.map((jersey, idx) => {
           const isAdded = addedIds[jersey.id];
           const currentSize = selectedSizes[jersey.id] || "M";
+          const sizes = jersey.availableSizes && jersey.availableSizes.length > 0 ? jersey.availableSizes : ["S", "M", "L", "XL", "XXL"];
 
           return (
             <div
@@ -232,8 +238,12 @@ export function Act4ProductCTA({
                 </div>
               </div>
 
-              {/* Real Product Image with Hover Zoom */}
-              <div className="relative my-4 flex h-[280px] w-full items-center justify-center rounded-xl overflow-hidden bg-black/60 border border-white/5 group-hover:border-white/10 transition-all p-1">
+              {/* Real Product Image with Hover Zoom & Click to Inspect */}
+              <div
+                onClick={() => onOpenQuickView(jersey)}
+                className="relative my-4 flex h-[280px] w-full items-center justify-center rounded-xl overflow-hidden bg-black/60 border border-white/5 group-hover:border-amber-500/40 transition-all p-1 cursor-pointer"
+                title="Click to inspect kit details and specs"
+              >
                 <div className="relative w-full h-full rounded-lg overflow-hidden">
                   <Image
                     src={jersey.image}
@@ -248,8 +258,12 @@ export function Act4ProductCTA({
 
                 {/* Quick View Button Hover Overlay */}
                 <button
-                  onClick={() => onOpenQuickView(jersey)}
-                  className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/80 px-3 py-1 text-[10px] font-mono text-zinc-200 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:border-amber-400 hover:text-white"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenQuickView(jersey);
+                  }}
+                  className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/85 px-3 py-1 text-[10px] font-mono text-zinc-200 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:border-amber-400 hover:text-white"
                 >
                   <Eye className="h-3 w-3 text-amber-400" />
                   <span>INSPECT</span>
@@ -259,12 +273,15 @@ export function Act4ProductCTA({
               {/* Product Details */}
               <div className="space-y-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-sans text-sm font-bold text-white tracking-tight leading-snug line-clamp-2">
+                  <h3
+                    onClick={() => onOpenQuickView(jersey)}
+                    className="font-sans text-sm font-bold text-white tracking-tight leading-snug line-clamp-2 cursor-pointer hover:text-amber-300 transition-colors"
+                  >
                     {jersey.name}
                   </h3>
                   <div className="flex items-center justify-between mt-1.5">
                     <p className="font-mono text-[10px] text-zinc-400 truncate max-w-[160px]">
-                      {jersey.colorway}
+                      {jersey.colorway || jersey.subtitle}
                     </p>
                     <span className="font-mono text-sm font-bold text-amber-400">
                       ৳{jersey.price.toLocaleString()}
@@ -276,7 +293,7 @@ export function Act4ProductCTA({
                 <div className="space-y-1.5 rounded-lg border border-white/5 bg-black/30 p-2.5">
                   <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
                     <span>WEIGHT</span>
-                    <span className="text-zinc-200 font-bold">{jersey.weightGsm} GSM</span>
+                    <span className="text-zinc-200 font-bold">{jersey.weightGsm || 240} GSM</span>
                   </div>
                   <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
                     <span>SEAMS</span>
@@ -286,7 +303,7 @@ export function Act4ProductCTA({
 
                 {/* Size Selector */}
                 <div className="flex items-center gap-1.5 pt-1">
-                  {jersey.availableSizes.map((size) => (
+                  {sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => handleSizeChange(jersey.id, size)}
@@ -301,31 +318,22 @@ export function Act4ProductCTA({
                   ))}
                 </div>
 
-                {/* Action Buttons: Add to Bag + Studio Customizer trigger */}
+                {/* Action Buttons: Add to Bag + Inspect / Studio Customizer */}
                 <div className="space-y-2 pt-1">
                   <button
-                    onClick={() => handleAddFromCard(jersey)}
-                    className="w-full flex items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 py-2.5 px-4 font-mono text-[11px] font-bold tracking-wider text-white transition-all duration-200 hover:border-amber-400 hover:bg-amber-500 hover:text-black active:scale-95"
+                    onClick={() => onOpenQuickView(jersey)}
+                    className="w-full flex items-center justify-center gap-2 rounded-full border border-white/10 bg-zinc-950 py-2.5 px-4 font-mono text-[11px] font-bold tracking-wider text-white transition-all duration-200 hover:border-amber-400 hover:bg-amber-500 hover:text-black active:scale-95 shadow-md"
                   >
-                    {isAdded ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 stroke-[3]" />
-                        <span>SECURED TO BAG</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="h-3.5 w-3.5" />
-                        <span>ACQUIRE MANTLE</span>
-                      </>
-                    )}
+                    <Eye className="h-3.5 w-3.5 text-amber-400 group-hover:text-black" />
+                    <span>ACQUIRE MANTLE / INSPECT</span>
                   </button>
 
                   <button
-                    onClick={scrollToStudio}
+                    onClick={() => onOpenQuickView(jersey)}
                     className="w-full flex items-center justify-center gap-1.5 rounded-full border border-white/5 bg-zinc-900/60 py-1.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:border-amber-500/30 transition-all"
                   >
                     <Sliders className="h-3 w-3" />
-                    <span>CUSTOMIZE IN STUDIO</span>
+                    <span>CUSTOMIZE BACK PRINT</span>
                   </button>
                 </div>
               </div>
