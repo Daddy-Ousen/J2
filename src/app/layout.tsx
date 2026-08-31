@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WhatsAppSupport } from "@/components/ui/WhatsAppSupport";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,6 +72,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#070709] selection:bg-amber-500 selection:text-black">
         {children}
         <WhatsAppSupport />
+        <Analytics />
       </body>
     </html>
   );
