@@ -111,6 +111,7 @@ export function CartDrawer({
                       src={item.jersey.image}
                       alt={item.jersey.name}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>

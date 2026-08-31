@@ -318,6 +318,7 @@ export default function ProductDetailPage() {
                     alt={product.name}
                     fill
                     priority
+                    unoptimized
                     sizes="(max-width: 1024px) 100vw, 600px"
                     className="object-cover object-center filter contrast-[1.08]"
                   />

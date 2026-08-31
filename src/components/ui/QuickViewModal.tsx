@@ -80,6 +80,7 @@ export function QuickViewModal({
                     src={jersey.image}
                     alt={jersey.name}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 300px, 450px"
                     className="object-cover object-center filter contrast-[1.08]"
                   />

@@ -335,6 +335,7 @@ export default function ShopPage() {
                       src={p.image}
                       alt={p.name}
                       fill
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, 350px"
                       className="object-cover object-center filter contrast-[1.05] transition-transform duration-700 group-hover:scale-105"
                     />

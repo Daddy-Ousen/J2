@@ -233,6 +233,7 @@ export function Act3JerseyMoment({ onInspectHeroKit }: Act3JerseyMomentProps) {
                 alt={heroJersey.name}
                 fill
                 priority
+                unoptimized
                 sizes="(max-width: 768px) 280px, 320px"
                 className="object-cover object-center filter contrast-[1.05] brightness-[1.0] group-hover:scale-105 transition-transform duration-700 ease-out"
               />

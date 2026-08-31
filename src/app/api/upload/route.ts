@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64DataUrl = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
 
     // Sanitize filename
     const originalName = file.name || "jersey_photo.jpg";
@@ -47,24 +48,34 @@ export async function POST(request: Request) {
       .slice(0, 30);
 
     const fileName = `kit_${Date.now()}_${baseName}${extension}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
 
-    await mkdir(uploadDir, { recursive: true });
-    const filePath = path.join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
+    // Attempt saving to local filesystem if available (development)
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, fileName);
+      await writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/${fileName}`;
-
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      fileName,
-      size: file.size,
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
+      return NextResponse.json({
+        success: true,
+        url: `/uploads/${fileName}`,
+        fileName,
+        size: file.size,
+      });
+    } catch (fsErr) {
+      // In serverless / read-only runtimes (e.g. Vercel Lambda), return the Base64 Data URL directly
+      console.log("Serverless read-only filesystem detected, serving Base64 Data URL:", fsErr);
+      return NextResponse.json({
+        success: true,
+        url: base64DataUrl,
+        fileName,
+        size: file.size,
+      });
+    }
+  } catch (error: any) {
+    console.error("Upload route error:", error);
     return NextResponse.json(
-      { error: "Failed to upload image" },
+      { error: error?.message || "Failed to process uploaded image" },
       { status: 500 }
     );
   }

@@ -219,31 +219,86 @@ export default function AdminPage() {
     }
   };
 
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileUpload = async (file: File, target: "edit" | "new") => {
     if (!file) return;
     setUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to upload photo");
+      // 1. Instant client-side optimized preview & Data URL
+      const clientDataUrl = await compressImage(file, 1200, 1200, 0.85);
+      if (clientDataUrl) {
+        if (target === "edit") {
+          setEditProductForm((prev: any) => ({ ...prev, image: clientDataUrl }));
+        } else {
+          setNewKitForm((prev: any) => ({ ...prev, image: clientDataUrl }));
+        }
       }
 
-      if (target === "edit") {
-        setEditProductForm((prev: any) => ({ ...prev, image: data.url }));
-      } else {
-        setNewKitForm((prev: any) => ({ ...prev, image: data.url }));
+      // 2. Call /api/upload endpoint for server storage / validation
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (res.ok && data.url) {
+          if (target === "edit") {
+            setEditProductForm((prev: any) => ({ ...prev, image: data.url }));
+          } else {
+            setNewKitForm((prev: any) => ({ ...prev, image: data.url }));
+          }
+        }
+      } catch (networkErr) {
+        console.log("Using client-side image data URL:", networkErr);
       }
     } catch (err: any) {
       console.error("Upload error:", err);
-      alert(err.message || "Failed to upload photo. Please try again.");
+      alert(err.message || "Failed to process photo. Please try again.");
     } finally {
       setUploadingImage(false);
     }
@@ -1290,6 +1345,7 @@ export default function AdminPage() {
                               src={editProductForm.image}
                               alt={editProductForm.name || "Preview"}
                               fill
+                              unoptimized
                               className="object-cover object-center filter contrast-[1.05]"
                             />
                           ) : (
@@ -1920,7 +1976,7 @@ export default function AdminPage() {
                         <div className="flex flex-col sm:flex-row gap-3 items-center">
                           <div className="relative h-16 w-14 rounded-xl overflow-hidden bg-zinc-900 border border-white/15 flex-shrink-0 flex items-center justify-center">
                             {newKitForm.image ? (
-                              <Image src={newKitForm.image} alt="Preview" fill className="object-cover" />
+                              <Image src={newKitForm.image} alt="Preview" fill unoptimized className="object-cover" />
                             ) : (
                               <ImageIcon className="h-6 w-6 text-zinc-600" />
                             )}
@@ -2093,7 +2149,7 @@ export default function AdminPage() {
                             </button>
 
                             <div className="relative h-20 w-16 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 flex-shrink-0 shadow-md">
-                              <Image src={p.image} alt={p.name} fill className="object-cover" />
+                              <Image src={p.image} alt={p.name} fill unoptimized className="object-cover" />
                             </div>
 
                             <div>
