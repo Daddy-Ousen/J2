@@ -1,66 +1,141 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc, Shuffle } from "lucide-react";
 
-const MATCHDAY_PLAYLIST = [
+export const MATCHDAY_PLAYLIST = [
   {
-    id: "anthem-1",
-    title: "Mantle of Glory",
-    subtitle: "Champions Matchday Anthem",
-    src: "/audio/matchday-anthem-1.mp3",
+    id: "track-1",
+    title: "Shut The Stadium Down",
+    subtitle: "UK Drill Matchday Hype",
+    src: "/audio/Shut The Stadium Down.mp3",
   },
   {
-    id: "anthem-2",
-    title: "Stadium Lights",
-    subtitle: "High-Energy Arena Hype",
-    src: "/audio/matchday-anthem-2.mp3",
+    id: "track-2",
+    title: "The Mantle",
+    subtitle: "Matchday Conviction Anthem",
+    src: "/audio/The Mantle.mp3",
   },
   {
-    id: "anthem-3",
-    title: "Tunnel Walk",
-    subtitle: "Electric Pre-Match Walkout",
-    src: "/audio/matchday-anthem-3.mp3",
+    id: "track-3",
+    title: "For the Love of the Game",
+    subtitle: "Tribute to Football Culture",
+    src: "/audio/For the Love of the Game.mp3",
+  },
+  {
+    id: "track-4",
+    title: "Fresh Out The Wrapper",
+    subtitle: "Unboxing Matchday Drip",
+    src: "/audio/Fresh Out The Wrapper.mp3",
+  },
+  {
+    id: "track-5",
+    title: "Matchday Magic",
+    subtitle: "Under The Stadium Lights",
+    src: "/audio/Matchday Magic.mp3",
+  },
+  {
+    id: "track-6",
+    title: "More Than 90 Minutes",
+    subtitle: "Lifelong Pitch Devotion",
+    src: "/audio/More Than 90 Minutes.mp3",
+  },
+  {
+    id: "track-7",
+    title: "Jersey Verse",
+    subtitle: "Official Matchday Soundtrack",
+    src: "/audio/Jersey Verse.mp3",
   },
 ];
 
 export function AudioToggle() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [volume, setVolume] = useState(0.6);
+  const [volume, setVolume] = useState(0.55);
   const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const userInteractedRef = useRef(false);
 
   const currentTrack = MATCHDAY_PLAYLIST[currentTrackIndex];
 
+  // Helper to pick next track randomly from remaining playlist
+  const pickNextRandomTrack = useCallback(() => {
+    setCurrentTrackIndex((prevIndex) => {
+      const candidates = MATCHDAY_PLAYLIST.map((_, idx) => idx).filter((idx) => idx !== prevIndex);
+      if (candidates.length === 0) return 0;
+      const nextRandom = candidates[Math.floor(Math.random() * candidates.length)];
+      return nextRandom;
+    });
+  }, []);
+
+  // Initialize audio and configure automatic playback
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const audio = new Audio(MATCHDAY_PLAYLIST[0].src);
+    audio.preload = "metadata";
     audio.loop = false;
     audio.volume = volume;
 
+    // Automatically pick next song randomly when current track finishes
     audio.onended = () => {
-      setCurrentTrackIndex((prev) => (prev + 1) % MATCHDAY_PLAYLIST.length);
+      pickNextRandomTrack();
     };
 
     audioRef.current = audio;
 
+    // Attempt direct autoplay on initial website load
+    const attemptAutoplay = () => {
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          userInteractedRef.current = true;
+        })
+        .catch(() => {
+          // If browser blocks un-interacted autoplay, start on first scroll/click/touch
+          const handleFirstInteraction = () => {
+            if (!userInteractedRef.current && audioRef.current) {
+              audioRef.current
+                .play()
+                .then(() => {
+                  setIsPlaying(true);
+                  userInteractedRef.current = true;
+                })
+                .catch(() => {});
+            }
+            window.removeEventListener("click", handleFirstInteraction);
+            window.removeEventListener("scroll", handleFirstInteraction);
+            window.removeEventListener("touchstart", handleFirstInteraction);
+            window.removeEventListener("keydown", handleFirstInteraction);
+          };
+
+          window.addEventListener("click", handleFirstInteraction, { once: true, passive: true });
+          window.addEventListener("scroll", handleFirstInteraction, { once: true, passive: true });
+          window.addEventListener("touchstart", handleFirstInteraction, { once: true, passive: true });
+          window.addEventListener("keydown", handleFirstInteraction, { once: true, passive: true });
+        });
+    };
+
+    // Small delay to ensure UI hydrations complete before audio kicks in
+    const timer = setTimeout(attemptAutoplay, 400);
+
     return () => {
+      clearTimeout(timer);
       audio.pause();
       audio.src = "";
     };
-  }, []);
+  }, [pickNextRandomTrack]);
 
-  // Update track src when track index changes
+  // Update track src when track index changes (e.g. on random track change or manual click)
   useEffect(() => {
     if (audioRef.current && typeof window !== "undefined") {
-      const wasPlaying = isPlaying;
       audioRef.current.src = currentTrack.src;
       audioRef.current.volume = volume;
-      if (wasPlaying) {
-        audioRef.current.play().catch(() => setIsPlaying(false));
-      }
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
     }
   }, [currentTrackIndex]);
 
@@ -82,9 +157,10 @@ export function AudioToggle() {
         .play()
         .then(() => {
           setIsPlaying(true);
+          userInteractedRef.current = true;
         })
         .catch((e) => {
-          console.warn("Playback error:", e);
+          console.warn("Audio playback error:", e);
           setIsPlaying(false);
         });
     }
@@ -92,7 +168,7 @@ export function AudioToggle() {
 
   const handleNextTrack = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentTrackIndex((prev) => (prev + 1) % MATCHDAY_PLAYLIST.length);
+    pickNextRandomTrack();
   };
 
   return (
@@ -116,7 +192,7 @@ export function AudioToggle() {
         {/* Track Title Display (Hidden on very small mobile, visible on sm+) */}
         <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="hidden sm:flex flex-col cursor-pointer max-w-[140px] truncate px-1 text-left select-none"
+          className="hidden sm:flex flex-col cursor-pointer max-w-[150px] truncate px-1 text-left select-none"
         >
           <div className="flex items-center gap-1.5 font-bold text-white truncate text-[11px]">
             <Disc className={`h-3 w-3 flex-shrink-0 text-amber-400 ${isPlaying ? "animate-spin" : ""}`} />
@@ -127,11 +203,11 @@ export function AudioToggle() {
           </span>
         </div>
 
-        {/* Next Track Button (Desktop only) */}
+        {/* Random Next Track Button */}
         <button
           onClick={handleNextTrack}
           className="hidden sm:flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
-          title="Skip to next track"
+          title="Random Next Track"
         >
           <SkipForward className="h-3.5 w-3.5" />
         </button>
@@ -141,6 +217,7 @@ export function AudioToggle() {
           <div
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-end gap-0.5 h-3.5 px-1 cursor-pointer"
+            title="Open Matchday Jukebox"
           >
             <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-2" />
             <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-3.5" />
@@ -151,24 +228,34 @@ export function AudioToggle() {
 
       {/* Expanded Playlist & Volume Modal */}
       {isExpanded && (
-        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-white/15 bg-zinc-950/98 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
+        <div className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-white/15 bg-zinc-950/98 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
             <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-400">
               <Music className="h-4 w-4" />
-              <span>MATCHDAY SOUNDTRACK</span>
+              <span>MATCHDAY JUKEBOX</span>
             </div>
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="text-zinc-400 hover:text-white text-xs font-mono"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={pickNextRandomTrack}
+                className="flex items-center gap-1 text-[10px] font-mono text-amber-400 hover:text-amber-300 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30"
+                title="Shuffle Random Track"
+              >
+                <Shuffle className="h-2.5 w-2.5" />
+                <span>SHUFFLE</span>
+              </button>
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="text-zinc-400 hover:text-white text-xs font-mono p-1"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Volume Slider */}
           <div className="space-y-1 mb-3 bg-zinc-900/60 p-2.5 rounded-xl border border-white/5">
             <div className="flex justify-between font-mono text-[10px] text-zinc-400">
-              <span>VOLUME</span>
+              <span>SOUNDTRACK VOLUME</span>
               <span>{Math.round(volume * 100)}%</span>
             </div>
             <input
@@ -183,7 +270,7 @@ export function AudioToggle() {
           </div>
 
           {/* Playlist Track List */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {MATCHDAY_PLAYLIST.map((track, idx) => {
               const isCurrent = idx === currentTrackIndex;
               return (
@@ -191,13 +278,13 @@ export function AudioToggle() {
                   key={track.id}
                   onClick={() => {
                     setCurrentTrackIndex(idx);
-                    if (!isPlaying && audioRef.current) {
+                    if (audioRef.current) {
                       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
                     }
                   }}
                   className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all ${
                     isCurrent
-                      ? "bg-amber-400/15 border border-amber-400/40 text-amber-300"
+                      ? "bg-amber-400/15 border border-amber-400/40 text-amber-300 shadow-sm"
                       : "bg-zinc-900/40 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-900"
                   }`}
                 >
