@@ -130,6 +130,14 @@ export function QuickViewModal({
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="border-l-2 border-amber-500/30 pl-2.5">
                   <div className="font-mono text-[9px] uppercase tracking-wider text-zinc-400">
+                    EDITION / ROLE
+                  </div>
+                  <div className="text-xs font-medium text-zinc-200 mt-0.5">
+                    {jersey.kitType ? `${jersey.kitType} Kit` : "Home Kit"}
+                  </div>
+                </div>
+                <div className="border-l-2 border-amber-500/30 pl-2.5">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-zinc-400">
                     SLEEVE
                   </div>
                   <div className="text-xs font-medium text-zinc-200 mt-0.5">

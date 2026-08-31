@@ -83,6 +83,7 @@ export default function AdminPage() {
     club: "",
     image: "/jerseys_3d/atletico_volt.jpg",
     sleeve: "Half sleeve",
+    kitType: "Home",
     dominantColor: "#0d0f14",
     accentColor: "#f59e0b",
     weightGsm: 240,
@@ -140,34 +141,42 @@ export default function AdminPage() {
       setUser(data.user);
       loadDashboardData();
     } catch (err: any) {
-      setLoginError(err.message || "Failed to log in as admin");
+      setLoginError(err.message);
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setUser(null);
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const loadDashboardData = async () => {
     setLoadingData(true);
     try {
-      // 1. Metrics
-      const mRes = await fetch("/api/admin/metrics");
-      const mData = await mRes.json();
+      const [mRes, oRes, pRes, sRes] = await Promise.all([
+        fetch("/api/admin/metrics"),
+        fetch("/api/admin/orders"),
+        fetch("/api/products"),
+        fetch("/api/admin/settings"),
+      ]);
+
+      const [mData, oData, pData, sData] = await Promise.all([
+        mRes.json(),
+        oRes.json(),
+        pRes.json(),
+        sRes.json(),
+      ]);
+
       if (mData.metrics) setMetrics(mData.metrics);
-
-      // 2. Orders
-      const oRes = await fetch("/api/admin/orders");
-      const oData = await oRes.json();
       if (oData.orders) setOrders(oData.orders);
-
-      // 3. Products
-      const pRes = await fetch("/api/products");
-      const pData = await pRes.json();
       if (pData.products) setProducts(pData.products);
-
-      // 4. Settings
-      const sRes = await fetch("/api/admin/settings");
-      const sData = await sRes.json();
       if (sData.settings) setSettings(sData.settings);
-    } catch (e) {
-      console.error("Dashboard fetch error:", e);
+    } catch (err) {
+      console.error("Dashboard data load error:", err);
     } finally {
       setLoadingData(false);
     }
@@ -185,7 +194,7 @@ export default function AdminPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: orderId,
+          orderId,
           ...(paymentStatus && { paymentStatus }),
           ...(orderStatus && { orderStatus }),
           ...(courierPartner !== undefined && { courierPartner }),
@@ -245,6 +254,7 @@ export default function AdminPage() {
       club: p.club || "",
       image: p.image || "/jerseys_3d/atletico_volt.jpg",
       sleeve: p.sleeve || "Half sleeve",
+      kitType: p.kitType || "Home",
       story: p.story || "",
       fabric: p.fabric || "",
       badgeType: p.badgeType || "",
@@ -424,6 +434,7 @@ export default function AdminPage() {
           club: "",
           image: "/jerseys_3d/atletico_volt.jpg",
           sleeve: "Half sleeve",
+          kitType: "Home",
           dominantColor: "#0d0f14",
           accentColor: "#f59e0b",
           weightGsm: 240,
@@ -1279,6 +1290,39 @@ export default function AdminPage() {
                             </select>
                           </div>
 
+                          {/* Home / Away / Third Matchday Role Toggle */}
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1.5">
+                              Matchday Role / Kit Type (Home / Away / Third) *
+                            </label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {[
+                                { id: "Home", label: "🏠 Home Kit" },
+                                { id: "Away", label: "✈️ Away Kit" },
+                                { id: "Third", label: "⚡ Third Kit" },
+                                { id: "Retro", label: "🏛️ Retro" },
+                              ].map((kt) => (
+                                <button
+                                  key={kt.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setEditProductForm({ ...editProductForm, kitType: kt.id })
+                                  }
+                                  className={`py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all border flex items-center justify-center gap-1.5 ${
+                                    (editProductForm.kitType || "Home") === kt.id
+                                      ? "border-amber-400 bg-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                      : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
+                                  }`}
+                                >
+                                  <span>{kt.label}</span>
+                                  {(editProductForm.kitType || "Home") === kt.id && (
+                                    <Check className="h-3 w-3 stroke-[3]" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           {/* Sleeve Field Selection */}
                           <div className="sm:col-span-2">
                             <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1.5">
@@ -1665,6 +1709,25 @@ export default function AdminPage() {
                         />
                       </div>
 
+                      {/* Kit Type (Home / Away / Third / Retro) in Add Kit Modal */}
+                      <div>
+                        <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1">
+                          Kit Type / Matchday Role *
+                        </label>
+                        <select
+                          value={newKitForm.kitType}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, kitType: e.target.value })
+                          }
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        >
+                          <option value="Home">🏠 Home Kit</option>
+                          <option value="Away">✈️ Away Kit</option>
+                          <option value="Third">⚡ Third Kit</option>
+                          <option value="Retro">🏛️ Retro Edition</option>
+                        </select>
+                      </div>
+
                       {/* Sleeve Selection in Add Kit Modal */}
                       <div>
                         <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1">
@@ -1817,7 +1880,10 @@ export default function AdminPage() {
                               <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-400">
                                 {p.league}
                               </span>
-                              <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] text-amber-300/90 font-bold">
+                              <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] text-amber-300 font-bold uppercase">
+                                {p.kitType || "Home"}
+                              </span>
+                              <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-300 font-bold">
                                 {p.sleeve || "Half sleeve"}
                               </span>
                               {p.isFeatured && (

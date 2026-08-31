@@ -218,7 +218,10 @@ export function Act4ProductCTA({
               {/* Top Card Badge & Edition */}
               <div className="flex items-center justify-between font-mono text-[10px] text-zinc-400 pb-3 border-b border-white/5">
                 <span className="text-amber-400 font-bold">{jersey.code}</span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] text-amber-300 font-bold uppercase">
+                    {jersey.kitType || "Home"}
+                  </span>
                   <span className="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-zinc-300">
                     {jersey.sleeve || "Half sleeve"}
                   </span>

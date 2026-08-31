@@ -88,6 +88,7 @@ export async function PATCH(request: Request) {
     if (data.fabric !== undefined) updateData.fabric = data.fabric;
     if (data.badgeType !== undefined) updateData.badgeType = data.badgeType;
     if (data.sleeve !== undefined) updateData.sleeve = data.sleeve;
+    if (data.kitType !== undefined) updateData.kitType = data.kitType;
     if (data.weightGsm !== undefined) updateData.weightGsm = Number(data.weightGsm);
     if (data.dominantColor !== undefined) updateData.dominantColor = data.dominantColor;
     if (data.accentColor !== undefined) updateData.accentColor = data.accentColor;
@@ -175,6 +176,7 @@ export async function POST(request: Request) {
         fabric: data.fabric || "Aero-Fit Engineered Knit",
         badgeType: data.badgeType || "3D Heat-pressed liquid silicone crest",
         sleeve: data.sleeve || "Half sleeve",
+        kitType: data.kitType || "Home",
         story: data.story || "Authentic official matchday armor.",
         stockS: Number(data.stockS) || 5,
         stockM: Number(data.stockM) || 5,

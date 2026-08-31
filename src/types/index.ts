@@ -14,6 +14,7 @@ export interface JerseyProduct {
   fabric: string;
   badgeType: string;
   sleeve?: "Full sleeve" | "Half sleeve" | string;
+  kitType?: "Home" | "Away" | "Third" | "Retro" | string;
   story: string;
   specs: {
     label: string;

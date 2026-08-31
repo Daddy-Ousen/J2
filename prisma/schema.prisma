@@ -39,6 +39,7 @@ model Product {
   fabric        String   @default("Aero-Fit Engineered Knit")
   badgeType     String   @default("3D Heat-pressed liquid silicone crest")
   sleeve        String   @default("Half sleeve") // "Half sleeve" | "Full sleeve"
+  kitType       String   @default("Home") // "Home" | "Away" | "Third" | "Retro"
   story         String
   stockS        Int      @default(5)
   stockM        Int      @default(8)
