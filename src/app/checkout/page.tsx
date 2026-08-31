@@ -538,7 +538,7 @@ export default function CheckoutPage() {
                           src={item.jersey.image}
                           alt={item.jersey.name}
                           fill
-                          unoptimized
+                          sizes="56px"
                           className="object-cover"
                         />
                       </div>

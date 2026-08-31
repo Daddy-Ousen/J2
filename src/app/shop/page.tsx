@@ -338,8 +338,7 @@ export default function ShopPage() {
                       src={p.image}
                       alt={p.name}
                       fill
-                      unoptimized
-                      sizes="(max-width: 768px) 100vw, 350px"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 350px"
                       className="object-cover object-center filter contrast-[1.05] transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80" />

@@ -195,7 +195,6 @@ export function QuickViewModal({
                     src={jersey.image}
                     alt={jersey.name}
                     fill
-                    unoptimized
                     priority
                     sizes="(max-width: 1024px) 100vw, 500px"
                     className="object-cover object-center filter contrast-[1.08] transition-transform duration-700 group-hover:scale-105"
