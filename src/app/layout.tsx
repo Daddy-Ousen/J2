@@ -4,6 +4,7 @@ import "./globals.css";
 import { WhatsAppSupport } from "@/components/ui/WhatsAppSupport";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AudioProvider } from "@/context/AudioContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,8 +76,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full bg-[#070709] text-zinc-100 antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#070709] selection:bg-amber-500 selection:text-black">
-        {children}
-        <WhatsAppSupport />
+        <AudioProvider>
+          {children}
+          <WhatsAppSupport />
+        </AudioProvider>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -1,194 +1,24 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc, Shuffle, Volume1 } from "lucide-react";
-
-export const MATCHDAY_PLAYLIST = [
-  {
-    id: "track-1",
-    title: "Shut The Stadium Down",
-    subtitle: "UK Drill Matchday Hype",
-    src: "/audio/Shut The Stadium Down.mp3",
-  },
-  {
-    id: "track-2",
-    title: "The Mantle",
-    subtitle: "Matchday Conviction Anthem",
-    src: "/audio/The Mantle.mp3",
-  },
-  {
-    id: "track-3",
-    title: "For the Love of the Game",
-    subtitle: "Tribute to Football Culture",
-    src: "/audio/For the Love of the Game.mp3",
-  },
-  {
-    id: "track-4",
-    title: "Fresh Out The Wrapper",
-    subtitle: "Unboxing Matchday Drip",
-    src: "/audio/Fresh Out The Wrapper.mp3",
-  },
-  {
-    id: "track-5",
-    title: "Matchday Magic",
-    subtitle: "Under The Stadium Lights",
-    src: "/audio/Matchday Magic.mp3",
-  },
-  {
-    id: "track-6",
-    title: "More Than 90 Minutes",
-    subtitle: "Lifelong Pitch Devotion",
-    src: "/audio/More Than 90 Minutes.mp3",
-  },
-  {
-    id: "track-7",
-    title: "Jersey Verse",
-    subtitle: "Official Matchday Soundtrack",
-    src: "/audio/Jersey Verse.mp3",
-  },
-];
+import React from "react";
+import { Volume2, SkipForward, Play, Pause, Music, Disc, Shuffle } from "lucide-react";
+import { useAudio } from "@/context/AudioContext";
 
 export function AudioToggle() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [volume, setVolume] = useState(0.55);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [waitingMobileInteraction, setWaitingMobileInteraction] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const unlockedRef = useRef(false);
-
-  const currentTrack = MATCHDAY_PLAYLIST[currentTrackIndex];
-
-  // Helper to pick next track randomly from remaining playlist
-  const pickNextRandomTrack = useCallback(() => {
-    setCurrentTrackIndex((prevIndex) => {
-      const candidates = MATCHDAY_PLAYLIST.map((_, idx) => idx).filter((idx) => idx !== prevIndex);
-      if (candidates.length === 0) return 0;
-      const nextRandom = candidates[Math.floor(Math.random() * candidates.length)];
-      return nextRandom;
-    });
-  }, []);
-
-  // Initialize audio and configure universal desktop + mobile autoplay
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    let audio = audioRef.current;
-    if (!audio) {
-      audio = new Audio();
-      audio.preload = "auto";
-      audio.setAttribute("playsinline", "true");
-      audio.setAttribute("webkit-playsinline", "true");
-      audioRef.current = audio;
-    }
-
-    audio.src = MATCHDAY_PLAYLIST[0].src;
-    audio.volume = volume;
-
-    // Automatically pick next song randomly when current track finishes
-    audio.onended = () => {
-      pickNextRandomTrack();
-    };
-
-    audio.onplay = () => {
-      setIsPlaying(true);
-      setWaitingMobileInteraction(false);
-      unlockedRef.current = true;
-    };
-
-    audio.onpause = () => {
-      setIsPlaying(false);
-    };
-
-    // 1. Direct autoplay attempt (works on desktop / permissive browsers)
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-          unlockedRef.current = true;
-          setWaitingMobileInteraction(false);
-        })
-        .catch(() => {
-          // Mobile Safari & Chrome require a user touch gesture before sound can output
-          setWaitingMobileInteraction(true);
-
-          const unlockAudioOnGesture = () => {
-            if (!unlockedRef.current && audioRef.current) {
-              audioRef.current
-                .play()
-                .then(() => {
-                  setIsPlaying(true);
-                  unlockedRef.current = true;
-                  setWaitingMobileInteraction(false);
-                })
-                .catch(() => {});
-            }
-
-            // Clean up gesture listeners once triggered
-            ["touchstart", "touchend", "pointerdown", "mousedown", "click"].forEach((evt) => {
-              window.removeEventListener(evt, unlockAudioOnGesture, true);
-              document.removeEventListener(evt, unlockAudioOnGesture, true);
-            });
-          };
-
-          // Register capture-phase listeners for the very first touch/click anywhere
-          ["touchstart", "touchend", "pointerdown", "mousedown", "click"].forEach((evt) => {
-            window.addEventListener(evt, unlockAudioOnGesture, { capture: true, passive: true });
-            document.addEventListener(evt, unlockAudioOnGesture, { capture: true, passive: true });
-          });
-        });
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-      }
-    };
-  }, [pickNextRandomTrack]);
-
-  // Update track src when track index changes
-  useEffect(() => {
-    if (audioRef.current && typeof window !== "undefined") {
-      audioRef.current.src = currentTrack.src;
-      audioRef.current.volume = volume;
-      if (unlockedRef.current || isPlaying) {
-        audioRef.current
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch(() => {});
-      }
-    }
-  }, [currentTrackIndex]);
-
-  // Update volume
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-  }, [volume]);
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          unlockedRef.current = true;
-          setWaitingMobileInteraction(false);
-        })
-        .catch((e) => {
-          console.warn("Audio playback error:", e);
-          setIsPlaying(false);
-        });
-    }
-  };
+  const {
+    isPlaying,
+    currentTrackIndex,
+    currentTrack,
+    volume,
+    isExpanded,
+    waitingMobileInteraction,
+    playlist,
+    togglePlay,
+    pickNextRandomTrack,
+    selectTrack,
+    setVolume,
+    setIsExpanded,
+  } = useAudio();
 
   const handleNextTrack = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -310,17 +140,12 @@ export function AudioToggle() {
 
           {/* Playlist Track List */}
           <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            {MATCHDAY_PLAYLIST.map((track, idx) => {
+            {playlist.map((track, idx) => {
               const isCurrent = idx === currentTrackIndex;
               return (
                 <div
                   key={track.id}
-                  onClick={() => {
-                    setCurrentTrackIndex(idx);
-                    if (audioRef.current) {
-                      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-                    }
-                  }}
+                  onClick={() => selectTrack(idx)}
                   className={`flex items-center justify-between p-2 rounded-xl cursor-pointer transition-all ${
                     isCurrent
                       ? "bg-amber-400/15 border border-amber-400/40 text-amber-300 shadow-sm"
