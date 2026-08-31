@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WhatsAppSupport } from "@/components/ui/WhatsAppSupport";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,7 @@ export default function RootLayout({
         {children}
         <WhatsAppSupport />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
