@@ -32,6 +32,10 @@ import {
   Upload,
   UploadCloud,
   Camera,
+  Star,
+  CheckSquare,
+  Square,
+  Filter,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -56,6 +60,10 @@ export default function AdminPage() {
   const [paymentFilter, setPaymentFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
+  // Multi-item bulk actions state
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   // Full Product Edit Modal State
   const [editingProductModal, setEditingProductModal] = useState<any | null>(null);
   const [editProductForm, setEditProductForm] = useState<any>({});
@@ -73,6 +81,7 @@ export default function AdminPage() {
   // New Kit Creation State
   const [isCreatingKit, setIsCreatingKit] = useState(false);
   const [inventorySearch, setInventorySearch] = useState("");
+  const [inventoryLeagueFilter, setInventoryLeagueFilter] = useState("ALL");
   const [newKitForm, setNewKitForm] = useState({
     code: "",
     name: "",
@@ -81,7 +90,7 @@ export default function AdminPage() {
     originalPrice: 1500,
     league: "Premier League",
     club: "",
-    image: "/jerseys_3d/atletico_volt.jpg",
+    image: "/jerseys/Arsenal Home 26-27 Player Version_Half Sleeve.jpg",
     sleeve: "Half sleeve",
     kitType: "Home",
     dominantColor: "#0d0f14",
@@ -360,6 +369,76 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleToggleSelectProduct = (id: string) => {
+    setSelectedProductIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllProducts = (filteredList: any[]) => {
+    if (selectedProductIds.length === filteredList.length && filteredList.length > 0) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(filteredList.map((p) => p.id));
+    }
+  };
+
+  const handleBulkUpdate = async (updates: Partial<{ isFeatured: boolean; inStock: boolean; sleeve: string; kitType: string }>) => {
+    if (selectedProductIds.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/products/batch", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: selectedProductIds,
+          updates,
+        }),
+      });
+      if (res.ok) {
+        loadDashboardData();
+        setSelectedProductIds([]);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to perform bulk update");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error executing bulk action");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProductIds.length === 0) return;
+    if (!confirm(`Are you sure you want to permanently delete ${selectedProductIds.length} selected kits? This action cannot be undone.`)) {
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/products/batch", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: selectedProductIds,
+        }),
+      });
+      if (res.ok) {
+        loadDashboardData();
+        setSelectedProductIds([]);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete selected kits");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting selected items");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -1045,27 +1124,46 @@ export default function AdminPage() {
         {/* ============================================================ */}
         {activeTab === "inventory" && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Header & Filter Controls */}
+            <div className="rounded-2xl border border-white/10 bg-zinc-950 p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <h3 className="font-mono text-sm font-bold text-white uppercase">
-                  MATCHDAY KIT INVENTORY & PRODUCT MANAGEMENT
+                <h3 className="font-mono text-sm font-bold text-white uppercase flex items-center gap-2">
+                  <span>MATCHDAY KIT INVENTORY & PRODUCT MANAGEMENT</span>
+                  <span className="rounded-full bg-amber-400/20 text-amber-300 px-2 py-0.5 text-[10px] font-mono">
+                    {products.length} KITS
+                  </span>
                 </h3>
                 <p className="font-mono text-xs text-zinc-400 mt-0.5">
-                  Full control over kit titles, 3D photos, descriptions, technical specs, pricing, and live inventory.
+                  Full control over 26/27 player versions, photos, descriptions, technical specs, pricing, and live inventory.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search */}
                 <div className="relative">
                   <input
                     type="text"
                     value={inventorySearch}
                     onChange={(e) => setInventorySearch(e.target.value)}
-                    placeholder="Search kit, club, or serial..."
-                    className="w-48 sm:w-64 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 pl-8 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                    placeholder="Search kit, club, or code..."
+                    className="w-44 sm:w-56 rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 pl-8 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
                   />
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
                 </div>
+
+                {/* League Filter */}
+                <select
+                  value={inventoryLeagueFilter}
+                  onChange={(e) => setInventoryLeagueFilter(e.target.value)}
+                  className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 font-mono text-xs text-zinc-300 focus:border-amber-400 focus:outline-none"
+                >
+                  <option value="ALL">All Leagues & Vaults</option>
+                  <option value="Premier League">Premier League</option>
+                  <option value="La Liga">La Liga</option>
+                  <option value="Serie A">Serie A</option>
+                  <option value="Bundesliga">Bundesliga</option>
+                  <option value="Retro">Retro Vault</option>
+                </select>
 
                 <button
                   onClick={() => setIsCreatingKit(true)}
@@ -1076,6 +1174,76 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
+
+            {/* STICKY BULK ACTIONS BAR (Visible when items are selected) */}
+            {selectedProductIds.length > 0 && (
+              <div className="sticky top-20 z-40 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/60 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_25px_rgba(245,158,11,0.25)] backdrop-blur-xl animate-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 font-mono text-xs font-bold text-black shadow-md">
+                    {selectedProductIds.length}
+                  </span>
+                  <span className="font-mono text-xs font-bold text-white tracking-wider">
+                    KITS SELECTED FOR BULK ACTION
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    disabled={bulkLoading}
+                    onClick={() => handleBulkUpdate({ isFeatured: true })}
+                    className="flex items-center gap-1.5 rounded-xl border border-amber-500/50 bg-amber-500/15 hover:bg-amber-400 hover:text-black px-3.5 py-1.5 font-mono text-xs font-bold text-amber-300 transition-all"
+                    title="Feature all selected kits on the storefront"
+                  >
+                    <Star className="h-3.5 w-3.5 fill-amber-300" />
+                    <span>MAKE FEATURED ({selectedProductIds.length})</span>
+                  </button>
+
+                  <button
+                    disabled={bulkLoading}
+                    onClick={() => handleBulkUpdate({ isFeatured: false })}
+                    className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-zinc-900 hover:bg-white/10 hover:text-white px-3 py-1.5 font-mono text-xs font-bold text-zinc-300 transition-all"
+                    title="Remove featured status from selected kits"
+                  >
+                    <span>UNFEATURE ({selectedProductIds.length})</span>
+                  </button>
+
+                  <button
+                    disabled={bulkLoading}
+                    onClick={() => handleBulkUpdate({ inStock: true })}
+                    className="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500 hover:text-black px-3 py-1.5 font-mono text-xs font-bold text-emerald-400 transition-all"
+                    title="Mark all selected as In Stock"
+                  >
+                    <span>MARK IN STOCK</span>
+                  </button>
+
+                  <button
+                    disabled={bulkLoading}
+                    onClick={() => handleBulkUpdate({ inStock: false })}
+                    className="flex items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 hover:bg-red-500 hover:text-white px-3 py-1.5 font-mono text-xs font-bold text-red-400 transition-all"
+                    title="Mark all selected as Sold Out"
+                  >
+                    <span>MARK SOLD OUT</span>
+                  </button>
+
+                  <button
+                    disabled={bulkLoading}
+                    onClick={handleBulkDelete}
+                    className="flex items-center gap-1.5 rounded-xl border border-red-500/60 bg-red-500/20 hover:bg-red-600 hover:text-white px-3.5 py-1.5 font-mono text-xs font-bold text-red-300 transition-all"
+                    title="Permanently delete selected kits"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>DELETE</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedProductIds([])}
+                    className="ml-2 rounded-lg px-2.5 py-1.5 font-mono text-xs text-zinc-400 hover:text-white transition-colors"
+                  >
+                    CLEAR
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* ============================================================ */}
             {/* FULL PRODUCT EDIT MODAL */}
@@ -1848,189 +2016,310 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* Product List */}
-            <div className="space-y-4">
-              {products
-                .filter(
-                  (p) =>
-                    !inventorySearch ||
-                    p.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
-                    p.code.toLowerCase().includes(inventorySearch.toLowerCase()) ||
-                    p.club.toLowerCase().includes(inventorySearch.toLowerCase())
-                )
-                .map((p) => {
-                  const isEditing = editingProductId === p.id;
+            {/* Product List Header / Select All Bar */}
+            {(() => {
+              const filteredProducts = products.filter((p) => {
+                const matchesSearch =
+                  !inventorySearch ||
+                  p.name.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                  p.code.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+                  p.club.toLowerCase().includes(inventorySearch.toLowerCase());
+                const matchesLeague =
+                  inventoryLeagueFilter === "ALL" || p.league === inventoryLeagueFilter;
+                return matchesSearch && matchesLeague;
+              });
 
-                  return (
-                    <div
-                      key={p.id}
-                      className={`rounded-2xl border bg-zinc-950 p-5 transition-all ${
-                        isEditing ? "border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.15)]" : "border-white/10 hover:border-white/20"
-                      }`}
+              const isAllSelected =
+                filteredProducts.length > 0 &&
+                filteredProducts.every((p) => selectedProductIds.includes(p.id));
+
+              return (
+                <div className="space-y-4">
+                  {/* Select All & Summary Bar */}
+                  <div className="flex items-center justify-between px-2 font-mono text-xs text-zinc-400">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAllProducts(filteredProducts)}
+                      className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
                     >
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        {/* Product identity */}
-                        <div className="flex items-center gap-4">
-                          <div className="relative h-20 w-16 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 flex-shrink-0 shadow-md">
-                            <Image src={p.image} alt={p.name} fill className="object-cover" />
-                          </div>
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-mono text-[10px] text-amber-400 font-bold">{p.code}</span>
-                              <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-400">
-                                {p.league}
-                              </span>
-                              <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] text-amber-300 font-bold uppercase">
-                                {p.kitType || "Home"}
-                              </span>
-                              <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-300 font-bold">
-                                {p.sleeve || "Half sleeve"}
-                              </span>
-                              {p.isFeatured && (
-                                <span className="rounded bg-amber-500/20 text-amber-300 text-[9px] font-mono px-1.5 py-0.5 font-bold flex items-center gap-1">
-                                  ★ FEATURED
-                                </span>
+                      {isAllSelected ? (
+                        <CheckSquare className="h-4 w-4 text-amber-400" />
+                      ) : (
+                        <Square className="h-4 w-4 text-zinc-600" />
+                      )}
+                      <span className="font-bold">
+                        {isAllSelected ? "Deselect All" : "Select All"} ({filteredProducts.length} kits)
+                      </span>
+                    </button>
+
+                    <div className="flex items-center gap-4 text-[11px] text-zinc-500">
+                      <span>
+                        Showing {filteredProducts.length} of {products.length} kits
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Product Cards */}
+                  {filteredProducts.map((p) => {
+                    const isEditing = editingProductId === p.id;
+                    const isSelected = selectedProductIds.includes(p.id);
+
+                    return (
+                      <div
+                        key={p.id}
+                        className={`rounded-2xl border bg-zinc-950 p-5 transition-all ${
+                          isSelected
+                            ? "border-amber-400 bg-amber-950/10 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
+                            : isEditing
+                            ? "border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
+                            : "border-white/10 hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          {/* Product identity + Checkbox */}
+                          <div className="flex items-center gap-4">
+                            {/* Multi-Select Checkbox */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelectProduct(p.id)}
+                              className="p-1 text-zinc-500 hover:text-amber-400 transition-colors flex-shrink-0"
+                              title={isSelected ? "Unselect kit" : "Select kit for bulk actions"}
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="h-5 w-5 text-amber-400" />
+                              ) : (
+                                <Square className="h-5 w-5 text-zinc-600" />
                               )}
-                              <span
-                                className={`rounded px-1.5 py-0.5 text-[9px] font-mono font-bold ${
-                                  p.inStock ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
-                                }`}
-                              >
-                                {p.inStock ? "IN STOCK" : "OUT OF STOCK"}
-                              </span>
-                            </div>
-                            <h4 className="text-base font-bold text-white mt-1">{p.name}</h4>
-                            <p className="font-mono text-[11px] text-zinc-400 line-clamp-1">{p.subtitle}</p>
-                            {p.story && (
-                              <p className="font-sans text-[11px] text-zinc-500 line-clamp-1 mt-0.5 max-w-xl">
-                                {p.story}
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                            </button>
 
-                        {/* Stock & Price Controls & Edit Actions */}
-                        {isEditing ? (
-                          <div className="flex flex-wrap items-center gap-3">
-                            {/* Price input */}
+                            <div className="relative h-20 w-16 rounded-xl overflow-hidden bg-zinc-900 border border-white/10 flex-shrink-0 shadow-md">
+                              <Image src={p.image} alt={p.name} fill className="object-cover" />
+                            </div>
+
                             <div>
-                              <label className="block font-mono text-[9px] text-zinc-400 uppercase">
-                                Price (BDT)
-                              </label>
-                              <input
-                                type="number"
-                                value={productForm.price}
-                                onChange={(e) =>
-                                  setProductForm({ ...productForm, price: e.target.value })
-                                }
-                                className="w-24 rounded-lg border border-amber-400 bg-zinc-900 px-2 py-1 font-mono text-xs font-bold text-amber-300"
-                              />
-                            </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-mono text-[10px] text-amber-400 font-bold">{p.code}</span>
+                                <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-400">
+                                  {p.league}
+                                </span>
+                                <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] text-amber-300 font-bold uppercase">
+                                  {p.kitType || "Home"}
+                                </span>
+                                <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-300 font-bold">
+                                  {p.sleeve || "Half sleeve"}
+                                </span>
 
-                            {/* Stocks */}
-                            {["S", "M", "L", "XL", "XXL"].map((size) => (
-                              <div key={size}>
+                                {/* Quick Clickable Featured Badge */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickToggleFeatured(p)}
+                                  className={`rounded px-2 py-0.5 font-mono text-[9px] font-bold flex items-center gap-1 transition-all ${
+                                    p.isFeatured
+                                      ? "bg-amber-400 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)] hover:bg-amber-300"
+                                      : "border border-white/15 bg-white/5 text-zinc-500 hover:border-amber-400 hover:text-amber-300"
+                                  }`}
+                                  title="Click to toggle featured on storefront"
+                                >
+                                  <Star className={`h-2.5 w-2.5 ${p.isFeatured ? "fill-black" : ""}`} />
+                                  <span>{p.isFeatured ? "★ FEATURED" : "☆ FEATURE"}</span>
+                                </button>
+
+                                {/* Quick Clickable In-Stock Badge */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickToggleInStock(p)}
+                                  className={`rounded px-2 py-0.5 text-[9px] font-mono font-bold transition-all ${
+                                    p.inStock
+                                      ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                                      : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                                  }`}
+                                  title="Click to toggle in stock status"
+                                >
+                                  {p.inStock ? "● IN STOCK" : "○ SOLD OUT"}
+                                </button>
+                              </div>
+
+                              <h4 className="text-base font-bold text-white mt-1">{p.name}</h4>
+                              <p className="font-mono text-[11px] text-zinc-400 line-clamp-1">{p.subtitle}</p>
+                              {p.story && (
+                                <p className="font-sans text-[11px] text-zinc-500 line-clamp-1 mt-0.5 max-w-xl">
+                                  {p.story}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Stock & Price Controls & Edit Actions */}
+                          {isEditing ? (
+                            <div className="flex flex-wrap items-center gap-3 bg-zinc-900/60 p-3 rounded-xl border border-amber-400/30">
+                              {/* Price input */}
+                              <div>
                                 <label className="block font-mono text-[9px] text-zinc-400 uppercase">
-                                  {size}
+                                  Price (BDT)
                                 </label>
                                 <input
                                   type="number"
-                                  value={productForm[`stock${size}`]}
+                                  value={productForm.price}
                                   onChange={(e) =>
-                                    setProductForm({
-                                      ...productForm,
-                                      [`stock${size}`]: e.target.value,
-                                    })
+                                    setProductForm({ ...productForm, price: e.target.value })
                                   }
-                                  className="w-14 rounded-lg border border-white/20 bg-zinc-900 px-2 py-1 font-mono text-xs text-white"
+                                  className="w-24 rounded-lg border border-amber-400 bg-zinc-900 px-2 py-1 font-mono text-xs font-bold text-amber-300"
                                 />
                               </div>
-                            ))}
 
-                            <button
-                              disabled={savingProduct}
-                              onClick={() => handleSaveProductEdit(p.id)}
-                              className="flex items-center gap-1 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)] mt-3 sm:mt-0"
-                            >
-                              <Save className="h-3.5 w-3.5" />
-                              <span>{savingProduct ? "SAVING..." : "SAVE"}</span>
-                            </button>
+                              {/* Stocks */}
+                              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                                <div key={size}>
+                                  <label className="block font-mono text-[9px] text-zinc-400 uppercase">
+                                    {size}
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={productForm[`stock${size}`]}
+                                    onChange={(e) =>
+                                      setProductForm({
+                                        ...productForm,
+                                        [`stock${size}`]: e.target.value,
+                                      })
+                                    }
+                                    className="w-12 rounded-lg border border-white/20 bg-zinc-900 px-1.5 py-1 font-mono text-xs text-white text-center"
+                                  />
+                                </div>
+                              ))}
 
-                            <button
-                              onClick={() => setEditingProductId(null)}
-                              className="px-3 py-2 text-zinc-400 hover:text-white text-xs font-mono"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                            <div>
-                              <span className="font-mono text-[9px] text-zinc-500 uppercase">PRICE</span>
-                              <div className="font-mono text-base font-bold text-amber-400">
-                                ৳{p.price.toLocaleString()} BDT
+                              {/* Quick Featured Toggle inside edit row */}
+                              <div>
+                                <label className="block font-mono text-[9px] text-zinc-400 uppercase">
+                                  Storefront
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setProductForm({
+                                      ...productForm,
+                                      isFeatured: !productForm.isFeatured,
+                                    })
+                                  }
+                                  className={`flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-xs font-bold border transition-colors ${
+                                    productForm.isFeatured
+                                      ? "bg-amber-400 border-amber-400 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                      : "bg-zinc-900 border-white/15 text-zinc-400 hover:text-white"
+                                  }`}
+                                >
+                                  <Star className={`h-3 w-3 ${productForm.isFeatured ? "fill-black" : ""}`} />
+                                  <span>{productForm.isFeatured ? "FEATURED" : "UNFEATURED"}</span>
+                                </button>
+                              </div>
+
+                              {/* Quick In Stock Toggle inside edit row */}
+                              <div>
+                                <label className="block font-mono text-[9px] text-zinc-400 uppercase">
+                                  Status
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setProductForm({
+                                      ...productForm,
+                                      inStock: !productForm.inStock,
+                                    })
+                                  }
+                                  className={`rounded-lg px-2 py-1 font-mono text-xs font-bold border transition-colors ${
+                                    productForm.inStock
+                                      ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                                      : "bg-red-500/20 border-red-500/40 text-red-400"
+                                  }`}
+                                >
+                                  <span>{productForm.inStock ? "IN STOCK" : "SOLD OUT"}</span>
+                                </button>
+                              </div>
+
+                              <button
+                                disabled={savingProduct}
+                                onClick={() => handleSaveProductEdit(p.id)}
+                                className="flex items-center gap-1 rounded-xl bg-amber-400 px-4 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                              >
+                                <Save className="h-3.5 w-3.5" />
+                                <span>{savingProduct ? "SAVING..." : "SAVE"}</span>
+                              </button>
+
+                              <button
+                                onClick={() => setEditingProductId(null)}
+                                className="px-2.5 py-2 text-zinc-400 hover:text-white text-xs font-mono"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                              <div>
+                                <span className="font-mono text-[9px] text-zinc-500 uppercase">PRICE</span>
+                                <div className="font-mono text-base font-bold text-amber-400">
+                                  ৳{p.price.toLocaleString()} BDT
+                                </div>
+                              </div>
+
+                              {/* Stock counts */}
+                              <div className="flex items-center gap-1.5 font-mono text-xs">
+                                <span className="text-zinc-500 text-[10px]">SIZES:</span>
+                                <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">S:{p.stockS}</span>
+                                <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">M:{p.stockM}</span>
+                                <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">L:{p.stockL}</span>
+                                <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XL:{p.stockXL}</span>
+                                <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XXL:{p.stockXXL}</span>
+                              </div>
+
+                              {/* Actions Group */}
+                              <div className="flex items-center gap-2">
+                                {/* Full Edit Modal Trigger Button */}
+                                <button
+                                  onClick={() => handleOpenFullEdit(p)}
+                                  className="flex items-center gap-1.5 rounded-xl bg-amber-400/15 border border-amber-500/40 hover:bg-amber-400 hover:text-black px-3.5 py-2 font-mono text-xs font-bold text-amber-300 transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                                  title="Edit full description, photo, name, specs, price & stocks"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                  <span>EDIT PRODUCT INFO</span>
+                                </button>
+
+                                {/* Quick inline price/stock toggle */}
+                                <button
+                                  onClick={() => {
+                                    setEditingProductId(p.id);
+                                    setProductForm({
+                                      price: p.price,
+                                      stockS: p.stockS,
+                                      stockM: p.stockM,
+                                      stockL: p.stockL,
+                                      stockXL: p.stockXL,
+                                      stockXXL: p.stockXXL,
+                                      isFeatured: p.isFeatured,
+                                      inStock: p.inStock,
+                                    });
+                                  }}
+                                  className="rounded-xl bg-zinc-900 border border-white/10 hover:border-white/30 px-2.5 py-2 font-mono text-xs text-zinc-400 hover:text-white transition-colors"
+                                  title="Quick Price, Stock & Featured Adjustment"
+                                >
+                                  <span>⚡ QUICK</span>
+                                </button>
+
+                                {/* Delete Button */}
+                                <button
+                                  onClick={() => handleDeleteProduct(p.id, p.name)}
+                                  className="rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/30 p-2 text-red-400 hover:text-red-300 transition-colors"
+                                  title="Delete Kit"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                               </div>
                             </div>
-
-                            {/* Stock counts */}
-                            <div className="flex items-center gap-1.5 font-mono text-xs">
-                              <span className="text-zinc-500 text-[10px]">SIZES:</span>
-                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">S:{p.stockS}</span>
-                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">M:{p.stockM}</span>
-                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">L:{p.stockL}</span>
-                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XL:{p.stockXL}</span>
-                              <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-300">XXL:{p.stockXXL}</span>
-                            </div>
-
-                            {/* Actions Group */}
-                            <div className="flex items-center gap-2">
-                              {/* Full Edit Modal Trigger Button */}
-                              <button
-                                onClick={() => handleOpenFullEdit(p)}
-                                className="flex items-center gap-1.5 rounded-xl bg-amber-400/15 border border-amber-500/40 hover:bg-amber-400 hover:text-black px-3.5 py-2 font-mono text-xs font-bold text-amber-300 transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]"
-                                title="Edit full description, 3D photo, name, specs, price & stocks"
-                              >
-                                <Edit className="h-3.5 w-3.5" />
-                                <span>EDIT PRODUCT INFO</span>
-                              </button>
-
-                              {/* Quick inline price/stock toggle */}
-                              <button
-                                onClick={() => {
-                                  setEditingProductId(p.id);
-                                  setProductForm({
-                                    price: p.price,
-                                    stockS: p.stockS,
-                                    stockM: p.stockM,
-                                    stockL: p.stockL,
-                                    stockXL: p.stockXL,
-                                    stockXXL: p.stockXXL,
-                                    isFeatured: p.isFeatured,
-                                    inStock: p.inStock,
-                                  });
-                                }}
-                                className="rounded-xl bg-zinc-900 border border-white/10 hover:border-white/30 px-2.5 py-2 font-mono text-xs text-zinc-400 hover:text-white transition-colors"
-                                title="Quick Price & Stock Adjustment"
-                              >
-                                <span>⚡ QUICK</span>
-                              </button>
-
-                              {/* Delete Button */}
-                              <button
-                                onClick={() => handleDeleteProduct(p.id, p.name)}
-                                className="rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/30 p-2 text-red-400 hover:text-red-300 transition-colors"
-                                title="Delete Kit"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-            </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
 
