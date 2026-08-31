@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc, Shuffle } from "lucide-react";
+import { Volume2, VolumeX, SkipForward, Play, Pause, Music, Disc, Shuffle, Volume1 } from "lucide-react";
 
 export const MATCHDAY_PLAYLIST = [
   {
@@ -53,8 +53,9 @@ export function AudioToggle() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(0.55);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [waitingMobileInteraction, setWaitingMobileInteraction] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const userInteractedRef = useRef(false);
+  const unlockedRef = useRef(false);
 
   const currentTrack = MATCHDAY_PLAYLIST[currentTrackIndex];
 
@@ -68,13 +69,20 @@ export function AudioToggle() {
     });
   }, []);
 
-  // Initialize audio and configure automatic playback
+  // Initialize audio and configure universal desktop + mobile autoplay
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const audio = new Audio(MATCHDAY_PLAYLIST[0].src);
-    audio.preload = "metadata";
-    audio.loop = false;
+    let audio = audioRef.current;
+    if (!audio) {
+      audio = new Audio();
+      audio.preload = "auto";
+      audio.setAttribute("playsinline", "true");
+      audio.setAttribute("webkit-playsinline", "true");
+      audioRef.current = audio;
+    }
+
+    audio.src = MATCHDAY_PLAYLIST[0].src;
     audio.volume = volume;
 
     // Automatically pick next song randomly when current track finishes
@@ -82,60 +90,75 @@ export function AudioToggle() {
       pickNextRandomTrack();
     };
 
-    audioRef.current = audio;
+    audio.onplay = () => {
+      setIsPlaying(true);
+      setWaitingMobileInteraction(false);
+      unlockedRef.current = true;
+    };
 
-    // Attempt direct autoplay on initial website load
-    const attemptAutoplay = () => {
-      audio
-        .play()
+    audio.onpause = () => {
+      setIsPlaying(false);
+    };
+
+    // 1. Direct autoplay attempt (works on desktop / permissive browsers)
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
         .then(() => {
           setIsPlaying(true);
-          userInteractedRef.current = true;
+          unlockedRef.current = true;
+          setWaitingMobileInteraction(false);
         })
         .catch(() => {
-          // If browser blocks un-interacted autoplay, start on first scroll/click/touch
-          const handleFirstInteraction = () => {
-            if (!userInteractedRef.current && audioRef.current) {
+          // Mobile Safari & Chrome require a user touch gesture before sound can output
+          setWaitingMobileInteraction(true);
+
+          const unlockAudioOnGesture = () => {
+            if (!unlockedRef.current && audioRef.current) {
               audioRef.current
                 .play()
                 .then(() => {
                   setIsPlaying(true);
-                  userInteractedRef.current = true;
+                  unlockedRef.current = true;
+                  setWaitingMobileInteraction(false);
                 })
                 .catch(() => {});
             }
-            window.removeEventListener("click", handleFirstInteraction);
-            window.removeEventListener("scroll", handleFirstInteraction);
-            window.removeEventListener("touchstart", handleFirstInteraction);
-            window.removeEventListener("keydown", handleFirstInteraction);
+
+            // Clean up gesture listeners once triggered
+            ["touchstart", "touchend", "pointerdown", "mousedown", "click"].forEach((evt) => {
+              window.removeEventListener(evt, unlockAudioOnGesture, true);
+              document.removeEventListener(evt, unlockAudioOnGesture, true);
+            });
           };
 
-          window.addEventListener("click", handleFirstInteraction, { once: true, passive: true });
-          window.addEventListener("scroll", handleFirstInteraction, { once: true, passive: true });
-          window.addEventListener("touchstart", handleFirstInteraction, { once: true, passive: true });
-          window.addEventListener("keydown", handleFirstInteraction, { once: true, passive: true });
+          // Register capture-phase listeners for the very first touch/click anywhere
+          ["touchstart", "touchend", "pointerdown", "mousedown", "click"].forEach((evt) => {
+            window.addEventListener(evt, unlockAudioOnGesture, { capture: true, passive: true });
+            document.addEventListener(evt, unlockAudioOnGesture, { capture: true, passive: true });
+          });
         });
-    };
-
-    // Small delay to ensure UI hydrations complete before audio kicks in
-    const timer = setTimeout(attemptAutoplay, 400);
+    }
 
     return () => {
-      clearTimeout(timer);
-      audio.pause();
-      audio.src = "";
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
     };
   }, [pickNextRandomTrack]);
 
-  // Update track src when track index changes (e.g. on random track change or manual click)
+  // Update track src when track index changes
   useEffect(() => {
     if (audioRef.current && typeof window !== "undefined") {
       audioRef.current.src = currentTrack.src;
       audioRef.current.volume = volume;
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {});
+      if (unlockedRef.current || isPlaying) {
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => {});
+      }
     }
   }, [currentTrackIndex]);
 
@@ -157,7 +180,8 @@ export function AudioToggle() {
         .play()
         .then(() => {
           setIsPlaying(true);
-          userInteractedRef.current = true;
+          unlockedRef.current = true;
+          setWaitingMobileInteraction(false);
         })
         .catch((e) => {
           console.warn("Audio playback error:", e);
@@ -173,12 +197,27 @@ export function AudioToggle() {
 
   return (
     <div className="relative flex items-center">
-      {/* Compact on Mobile, Extended on Desktop */}
+      {/* Mobile Autoplay Unlock Helper Pill (Appears if mobile browser holds audio before first tap) */}
+      {waitingMobileInteraction && !isPlaying && (
+        <button
+          onClick={togglePlay}
+          className="sm:hidden absolute -bottom-8 right-0 whitespace-nowrap flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-[9px] font-mono font-bold text-black shadow-lg animate-bounce z-50 border border-amber-300"
+        >
+          <Volume2 className="h-3 w-3" />
+          <span>TAP TO PLAY ANTHEM</span>
+        </button>
+      )}
+
+      {/* Main Player Pill */}
       <div className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-zinc-950/90 p-1 sm:px-2.5 sm:py-1 text-[11px] font-mono backdrop-blur-md shadow-md">
         {/* Play/Pause Button */}
         <button
           onClick={togglePlay}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-black hover:bg-amber-300 transition-transform active:scale-95 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+          className={`flex h-7 w-7 items-center justify-center rounded-full transition-transform active:scale-95 shadow-[0_0_10px_rgba(245,158,11,0.4)] ${
+            waitingMobileInteraction && !isPlaying
+              ? "bg-amber-400 text-black animate-pulse"
+              : "bg-amber-400 text-black hover:bg-amber-300"
+          }`}
           title={isPlaying ? "Pause Matchday Soundtrack" : "Play Football Soundtrack"}
           aria-label={isPlaying ? "Pause audio" : "Play audio"}
         >
