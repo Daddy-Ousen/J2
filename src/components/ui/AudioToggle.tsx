@@ -90,19 +90,21 @@ export function AudioToggle() {
     }
   };
 
-  const handleNextTrack = () => {
+  const handleNextTrack = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentTrackIndex((prev) => (prev + 1) % MATCHDAY_PLAYLIST.length);
   };
 
   return (
     <div className="relative flex items-center">
-      {/* Mini Player Bar */}
-      <div className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-black/70 px-2.5 py-1 text-[11px] font-mono backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.6)]">
+      {/* Compact on Mobile, Extended on Desktop */}
+      <div className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-zinc-950/90 p-1 sm:px-2.5 sm:py-1 text-[11px] font-mono backdrop-blur-md shadow-md">
         {/* Play/Pause Button */}
         <button
           onClick={togglePlay}
           className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-black hover:bg-amber-300 transition-transform active:scale-95 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
           title={isPlaying ? "Pause Matchday Soundtrack" : "Play Football Soundtrack"}
+          aria-label={isPlaying ? "Pause audio" : "Play audio"}
         >
           {isPlaying ? (
             <Pause className="h-3.5 w-3.5 fill-black stroke-black" />
@@ -111,24 +113,24 @@ export function AudioToggle() {
           )}
         </button>
 
-        {/* Track Title Display */}
+        {/* Track Title Display (Hidden on very small mobile, visible on sm+) */}
         <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex flex-col cursor-pointer max-w-[110px] sm:max-w-[160px] truncate px-1 text-left select-none"
+          className="hidden sm:flex flex-col cursor-pointer max-w-[140px] truncate px-1 text-left select-none"
         >
           <div className="flex items-center gap-1.5 font-bold text-white truncate text-[11px]">
             <Disc className={`h-3 w-3 flex-shrink-0 text-amber-400 ${isPlaying ? "animate-spin" : ""}`} />
             <span className="truncate">{currentTrack.title}</span>
           </div>
-          <span className="text-[9px] text-zinc-400 truncate hidden sm:block">
+          <span className="text-[9px] text-zinc-400 truncate">
             {currentTrack.subtitle}
           </span>
         </div>
 
-        {/* Next Track Button */}
+        {/* Next Track Button (Desktop only) */}
         <button
           onClick={handleNextTrack}
-          className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
+          className="hidden sm:flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
           title="Skip to next track"
         >
           <SkipForward className="h-3.5 w-3.5" />
@@ -136,24 +138,31 @@ export function AudioToggle() {
 
         {/* Sound Waves Animation when active */}
         {isPlaying && (
-          <div className="flex items-end gap-0.5 h-3.5 px-1">
-            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_100ms] h-2" />
-            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_300ms] h-3.5" />
-            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_200ms] h-1.5" />
-            <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_400ms] h-3" />
+          <div
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-end gap-0.5 h-3.5 px-1 cursor-pointer"
+          >
+            <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-2" />
+            <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-3.5" />
+            <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-1.5" />
           </div>
         )}
       </div>
 
       {/* Expanded Playlist & Volume Modal */}
       {isExpanded && (
-        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-white/15 bg-zinc-950/95 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-2xl border border-white/15 bg-zinc-950/98 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
             <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-400">
               <Music className="h-4 w-4" />
               <span>MATCHDAY SOUNDTRACK</span>
             </div>
-            <span className="font-mono text-[10px] text-zinc-500">ROYALTY-FREE</span>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="text-zinc-400 hover:text-white text-xs font-mono"
+            >
+              ✕
+            </button>
           </div>
 
           {/* Volume Slider */}
@@ -208,8 +217,8 @@ export function AudioToggle() {
 
                   {isCurrent && isPlaying && (
                     <div className="flex items-end gap-0.5 h-3 flex-shrink-0">
-                      <span className="w-0.5 bg-amber-400 rounded-full animate-[pulse_0.6s_infinite] h-2" />
-                      <span className="w-0.5 bg-amber-400 rounded-full animate-[pulse_0.9s_infinite] h-3" />
+                      <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-2" />
+                      <span className="w-0.5 bg-amber-400 rounded-full animate-pulse h-3" />
                     </div>
                   )}
                 </div>

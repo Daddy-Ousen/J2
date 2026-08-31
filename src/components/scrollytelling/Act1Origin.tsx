@@ -29,16 +29,18 @@ export function Act1Origin() {
         return;
       }
 
-      // Continuous slow background parallax drift on scroll
+      const isMobile = window.innerWidth < 768;
+
+      // Continuous background parallax drift on scroll
       gsap.to(bgRef.current, {
-        yPercent: 18,
-        scale: 1.08,
+        yPercent: isMobile ? 8 : 16,
+        scale: isMobile ? 1.04 : 1.08,
         ease: "none",
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
           end: "bottom top",
-          scrub: 1.2,
+          scrub: isMobile ? 0.3 : 1.0,
         },
       });
 
@@ -47,20 +49,20 @@ export function Act1Origin() {
 
       tl.fromTo(
         headlineRef.current,
-        { opacity: 0, y: 40, filter: "blur(8px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.4, delay: 0.2 }
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1.1, delay: 0.1 }
       )
         .fromTo(
           subtextRef.current,
-          { opacity: 0, y: 25 },
-          { opacity: 1, y: 0, duration: 1.1 },
-          "-=0.8"
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.9 },
+          "-=0.6"
         )
         .fromTo(
           metaRef.current,
           { opacity: 0, y: 15 },
-          { opacity: 1, y: 0, duration: 0.9 },
-          "-=0.6"
+          { opacity: 1, y: 0, duration: 0.7 },
+          "-=0.5"
         );
     },
     { scope: containerRef }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import sharp from "sharp";
 
 export async function POST(request: Request) {
   try {
@@ -26,17 +27,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // Size limit: 10MB
-    if (file.size > 10 * 1024 * 1024) {
+    // Size limit: 15MB
+    if (file.size > 15 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "File too large. Maximum allowed size is 10MB." },
+        { error: "File too large. Maximum allowed size is 15MB." },
         { status: 400 }
       );
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64DataUrl = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
+    let buffer = Buffer.from(bytes);
+
+    // Auto-compress and resize using sharp to ensure blazing fast mobile performance
+    try {
+      buffer = await sharp(buffer)
+        .resize({ width: 900, withoutEnlargement: true, fit: "inside" })
+        .jpeg({ quality: 80, mozjpeg: true, progressive: true })
+        .toBuffer();
+    } catch (sharpErr) {
+      console.warn("Sharp compression fallback:", sharpErr);
+    }
+
+    const base64DataUrl = `data:image/jpeg;base64,${buffer.toString("base64")}`;
 
     // Sanitize filename
     const originalName = file.name || "jersey_photo.jpg";

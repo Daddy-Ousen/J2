@@ -73,14 +73,16 @@ export function Act3JerseyMoment({ products, onInspectHeroKit }: Act3JerseyMomen
         return;
       }
 
+      const isMobile = window.innerWidth < 768;
+
       // Initial state: small, distant, low opacity
       gsap.set(jerseyAssetRef.current, {
-        scale: 0.42,
-        opacity: 0.7,
-        y: 20,
-        filter: "blur(4px) drop-shadow(0 0 20px rgba(0,0,0,0.9))",
+        scale: isMobile ? 0.55 : 0.42,
+        opacity: 0.8,
+        y: isMobile ? 10 : 20,
+        filter: isMobile ? "none" : "drop-shadow(0 0 20px rgba(0,0,0,0.9))",
       });
-      gsap.set(textStageRef.current, { opacity: 0, y: 40 });
+      gsap.set(textStageRef.current, { opacity: 0, y: isMobile ? 25 : 40 });
       gsap.set(glowRef.current, { scale: 0.5, opacity: 0.2 });
 
       let flashTriggered = false;
@@ -90,10 +92,10 @@ export function Act3JerseyMoment({ products, onInspectHeroKit }: Act3JerseyMomen
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "+=160%",
+          end: isMobile ? "+=110%" : "+=150%",
           pin: true,
           pinSpacing: true,
-          scrub: 1,
+          scrub: isMobile ? 0.3 : 0.8,
           anticipatePin: 1,
           onUpdate: (self) => {
             // Trigger peak flash and screen shake once when crossing 82% progress
