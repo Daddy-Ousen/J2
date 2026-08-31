@@ -330,7 +330,7 @@ export default function ShopPage() {
 
                   {/* Product Image Stage */}
                   <Link
-                    href={`/product/${p.slug}`}
+                    href={`/product/${p.slug || p.id}`}
                     className="relative block h-72 w-full overflow-hidden bg-zinc-900/60 cursor-pointer"
                   >
                     <Image
@@ -362,7 +362,7 @@ export default function ShopPage() {
                         </span>
                       </div>
 
-                      <Link href={`/product/${p.slug}`} className="group-hover:text-amber-400 transition-colors">
+                      <Link href={`/product/${p.slug || p.id}`} className="group-hover:text-amber-400 transition-colors">
                         <h3 className="mt-2 text-base font-bold tracking-tight text-white line-clamp-1">
                           {p.name}
                         </h3>
@@ -378,7 +378,7 @@ export default function ShopPage() {
                           {p.weightGsm} GSM
                         </span>
                         <span className="rounded bg-zinc-900 border border-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-300">
-                          Official Badge
+                          {p.badgeType || "Official Badge"}
                         </span>
                       </div>
                     </div>
@@ -399,32 +399,7 @@ export default function ShopPage() {
 
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => {
-                            const jerseyProd: JerseyProduct = {
-                              id: p.id,
-                              code: p.code,
-                              name: p.name,
-                              subtitle: p.subtitle,
-                              price: p.price,
-                              edition: p.league,
-                              colorway: p.club,
-                              dominantColor: p.dominantColor,
-                              accentColor: p.accentColor,
-                              image: p.image,
-                              fallbackGradient: "from-zinc-950 via-zinc-900 to-amber-950/40",
-                              weightGsm: p.weightGsm,
-                              fabric: p.fabric,
-                              badgeType: p.badgeType,
-                              story: p.story,
-                              specs: [
-                                { label: "Weight", value: `${p.weightGsm} GSM` },
-                                { label: "Fabric", value: p.fabric },
-                                { label: "Badge", value: p.badgeType },
-                              ],
-                              availableSizes: ["S", "M", "L", "XL", "XXL"],
-                            };
-                            setInspectProduct(jerseyProd);
-                          }}
+                          onClick={() => setInspectProduct(p)}
                           className="rounded-lg border border-white/10 bg-zinc-900 p-2 text-zinc-300 hover:border-white/30 hover:text-white transition-colors"
                           title="Quick View"
                         >

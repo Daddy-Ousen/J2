@@ -8,6 +8,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import { CartDrawer, CartItem } from "@/components/ui/CartDrawer";
 import { SizeGuideModal } from "@/components/ui/SizeGuideModal";
 import { JerseyProduct } from "@/types";
+import { JERSEYS_DATA } from "@/data/jerseys";
 import { getStoredCart, saveStoredCart } from "@/lib/cartStore";
 import {
   ShieldCheck,
@@ -77,6 +78,13 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    const staticItem = JERSEYS_DATA.find(
+      (j) => j.id === id || j.slug === id || j.code === id
+    );
+    if (staticItem) {
+      setProduct(staticItem);
+      setLoading(false);
+    }
     loadReviews();
     fetch(`/api/products/${id}`)
       .then((res) => res.json())
@@ -84,22 +92,22 @@ export default function ProductDetailPage() {
         if (data.product) {
           setProduct(data.product);
           // Set default custom name to club or popular player if applicable
-          if (data.product.club.includes("Real Madrid")) {
+          if (data.product.club?.includes("Real Madrid")) {
             setCustomName("BELLINGHAM");
             setCustomNumber("5");
-          } else if (data.product.club.includes("Barcelona")) {
+          } else if (data.product.club?.includes("Barcelona")) {
             setCustomName("LAMINE YAMAL");
             setCustomNumber("19");
-          } else if (data.product.club.includes("Arsenal")) {
+          } else if (data.product.club?.includes("Arsenal")) {
             setCustomName("SAKA");
             setCustomNumber("7");
-          } else if (data.product.club.includes("Al Nassr")) {
+          } else if (data.product.club?.includes("Al Nassr")) {
             setCustomName("RONALDO");
             setCustomNumber("7");
-          } else if (data.product.club.includes("Manchester United")) {
+          } else if (data.product.club?.includes("Manchester United")) {
             setCustomName("MAINOO");
             setCustomNumber("37");
-          } else if (data.product.club.includes("Argentina")) {
+          } else if (data.product.club?.includes("Argentina")) {
             setCustomName("MESSI");
             setCustomNumber("10");
           } else {
