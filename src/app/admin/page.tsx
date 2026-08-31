@@ -29,44 +29,10 @@ import {
   Eye,
   Layers,
   Check,
+  Upload,
+  UploadCloud,
+  Camera,
 } from "lucide-react";
-
-const AVAILABLE_3D_PRESETS = [
-  { name: "Real Madrid 24/25 Home", path: "/jerseys_3d/real_madrid_home.jpg" },
-  { name: "Real Madrid 24/25 Third", path: "/jerseys_3d/real_madrid_third.jpg" },
-  { name: "FC Barcelona 24/25 Blaugrana", path: "/jerseys_3d/barcelona_blaugrana.jpg" },
-  { name: "FC Barcelona 24/25 Teal Third", path: "/jerseys_3d/barcelona_teal.jpg" },
-  { name: "Arsenal 24/25 Home", path: "/jerseys_3d/arsenal_home.jpg" },
-  { name: "Arsenal 24/25 Away Cannon", path: "/jerseys_3d/arsenal_away.jpg" },
-  { name: "Manchester United 24/25 Home", path: "/jerseys_3d/man_united_home.jpg" },
-  { name: "Manchester City 24/25 Home", path: "/jerseys_3d/mancity_home.jpg" },
-  { name: "Chelsea 24/25 Liquid Blue", path: "/jerseys_3d/chelsea_home.jpg" },
-  { name: "Liverpool 24/25 Anfield", path: "/jerseys_3d/liverpool_home.jpg" },
-  { name: "Bayern Munich 24/25 Home", path: "/jerseys_3d/bayern_home.jpg" },
-  { name: "Borussia Dortmund 24/25 Home", path: "/jerseys_3d/bvb_home.jpg" },
-  { name: "Inter Milan 24/25 Second Star", path: "/jerseys_3d/inter_milan.jpg" },
-  { name: "AC Milan 24/25 Away Rossoneri", path: "/jerseys_3d/ac_milan_away.jpg" },
-  { name: "Juventus 24/25 Home Polo", path: "/jerseys_3d/juventus_home.jpg" },
-  { name: "Atlético Madrid 24/25 Volt", path: "/jerseys_3d/atletico_volt.jpg" },
-  { name: "PSG 24/25 Home Hechter", path: "/jerseys_3d/psg_home.jpg" },
-  { name: "Al Nassr 24/25 Heritage", path: "/jerseys_3d/alnassr_heritage.jpg" },
-  { name: "Portugal 24/25 Euro", path: "/jerseys_3d/portugal_home.jpg" },
-  { name: "Argentina 24/25 Three Stars", path: "/jerseys_3d/argentina_home.jpg" },
-  { name: "Brazil 24/25 Canarinho", path: "/jerseys_3d/brazil_home.jpg" },
-  { name: "France 24/25 Rooster", path: "/jerseys_3d/france_home.jpg" },
-  { name: "England 24/25 Three Lions", path: "/jerseys_3d/england_home.jpg" },
-  { name: "Germany 24/25 DFB Eagle", path: "/jerseys_3d/germany_home.jpg" },
-  { name: "Italy 24/25 Azzurri", path: "/jerseys_3d/italy_home.jpg" },
-  { name: "Spain 24/25 Euro Champions", path: "/jerseys_3d/spain_home.jpg" },
-  { name: "Norway 24/25 Glacier", path: "/jerseys_3d/norway_glacier.jpg" },
-  { name: "FC Barcelona 1999 Centenary", path: "/jerseys_3d/barca_retro99.jpg" },
-  { name: "Manchester United 1999 Treble", path: "/jerseys_3d/manutd_retro99.jpg" },
-  { name: "Real Madrid 2002 Zidane Volley", path: "/jerseys_3d/realmadrid_retro02.jpg" },
-  { name: "AC Milan 2007 Athens Final", path: "/jerseys_3d/acmilan_retro07.jpg" },
-  { name: "Arsenal 2005/06 Highbury", path: "/jerseys_3d/arsenal_retro06.jpg" },
-  { name: "Juventus 2002/03 Fastweb", path: "/jerseys_3d/juventus_retro03.jpg" },
-  { name: "Brazil 2002 World Cup Penta", path: "/jerseys_3d/brazil_retro02.jpg" },
-];
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
@@ -95,6 +61,7 @@ export default function AdminPage() {
   const [editProductForm, setEditProductForm] = useState<any>({});
   const [savingFullProduct, setSavingFullProduct] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Quick Price / Stock edit in table
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -115,6 +82,7 @@ export default function AdminPage() {
     league: "Premier League",
     club: "",
     image: "/jerseys_3d/atletico_volt.jpg",
+    sleeve: "Half sleeve",
     dominantColor: "#0d0f14",
     accentColor: "#f59e0b",
     weightGsm: 240,
@@ -233,6 +201,36 @@ export default function AdminPage() {
     }
   };
 
+  const handleFileUpload = async (file: File, target: "edit" | "new") => {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload photo");
+      }
+
+      if (target === "edit") {
+        setEditProductForm((prev: any) => ({ ...prev, image: data.url }));
+      } else {
+        setNewKitForm((prev: any) => ({ ...prev, image: data.url }));
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      alert(err.message || "Failed to upload photo. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleOpenFullEdit = (p: any) => {
     setEditingProductModal(p);
     setEditProductForm({
@@ -246,6 +244,7 @@ export default function AdminPage() {
       league: p.league || "Premier League",
       club: p.club || "",
       image: p.image || "/jerseys_3d/atletico_volt.jpg",
+      sleeve: p.sleeve || "Half sleeve",
       story: p.story || "",
       fabric: p.fabric || "",
       badgeType: p.badgeType || "",
@@ -1098,14 +1097,14 @@ export default function AdminPage() {
 
                   {/* Edit Form */}
                   <form onSubmit={handleSaveFullEdit} className="space-y-6 font-mono text-xs">
-                    {/* Top Grid: Photo Preview & Presets + Identity */}
+                    {/* Top Grid: Photo Upload & Preview + Identity */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {/* Photo Preview & Path Box */}
+                      {/* Photo Upload & Preview Box */}
                       <div className="md:col-span-1 space-y-3">
                         <label className="block text-[10px] uppercase text-amber-400 font-bold">
-                          Photo / 3D Render Preview
+                          Product Photo / 3D Render
                         </label>
-                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/15 bg-zinc-900 shadow-inner flex items-center justify-center">
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden border border-white/15 bg-zinc-900 shadow-inner flex items-center justify-center group">
                           {editProductForm.image ? (
                             <Image
                               src={editProductForm.image}
@@ -1123,36 +1122,53 @@ export default function AdminPage() {
                           <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/75 px-2 py-1 text-[10px] text-zinc-300 backdrop-blur-md truncate">
                             {editProductForm.image || "No path"}
                           </div>
-                        </div>
 
-                        <div>
-                          <label className="block text-[10px] uppercase text-zinc-400 mb-1">
-                            Select 3D Render Preset
+                          {/* Quick Change Overlay on hover */}
+                          <label className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 cursor-pointer transition-opacity text-white">
+                            <UploadCloud className="h-8 w-8 text-amber-400 animate-bounce" />
+                            <span className="font-mono text-xs font-bold">CHANGE PHOTO</span>
+                            <span className="text-[9px] text-zinc-400">JPG, PNG, WEBP, AVIF</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingImage}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, "edit");
+                              }}
+                              className="hidden"
+                            />
                           </label>
-                          <select
-                            value=""
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setEditProductForm({
-                                  ...editProductForm,
-                                  image: e.target.value,
-                                });
-                              }
-                            }}
-                            className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white text-xs focus:border-amber-400 focus:outline-none"
-                          >
-                            <option value="">-- Choose from 34 Renders --</option>
-                            {AVAILABLE_3D_PRESETS.map((preset) => (
-                              <option key={preset.path} value={preset.path}>
-                                {preset.name}
-                              </option>
-                            ))}
-                          </select>
+
+                          {uploadingImage && (
+                            <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center gap-2 text-amber-400 font-mono text-xs z-10">
+                              <RefreshCw className="h-6 w-6 animate-spin" />
+                              <span>UPLOADING PHOTO...</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Direct Upload Button */}
+                        <div>
+                          <label className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 py-2.5 px-3 text-amber-300 font-mono text-xs font-bold cursor-pointer transition-colors w-full text-center">
+                            <Upload className="h-4 w-4" />
+                            <span>{uploadingImage ? "UPLOADING..." : "UPLOAD NEW PHOTO"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingImage}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, "edit");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
                         </div>
 
                         <div>
                           <label className="block text-[10px] uppercase text-zinc-400 mb-1">
-                            Custom Image Path or URL
+                            Direct Image Path or URL
                           </label>
                           <input
                             type="text"
@@ -1161,8 +1177,8 @@ export default function AdminPage() {
                             onChange={(e) =>
                               setEditProductForm({ ...editProductForm, image: e.target.value })
                             }
-                            placeholder="/jerseys_3d/... or https://..."
-                            className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            placeholder="/jerseys_3d/... or /uploads/... or https://..."
+                            className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none text-xs"
                           />
                         </div>
                       </div>
@@ -1260,6 +1276,37 @@ export default function AdminPage() {
                               <option value="International">International</option>
                               <option value="Retro">Retro Vault</option>
                             </select>
+                          </div>
+
+                          {/* Sleeve Field Selection */}
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1.5">
+                              Sleeve Cut / Edition *
+                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                              {[
+                                { id: "Half sleeve", label: "Half sleeve (Standard)" },
+                                { id: "Full sleeve", label: "Full sleeve (Long Sleeve)" },
+                              ].map((sl) => (
+                                <button
+                                  key={sl.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setEditProductForm({ ...editProductForm, sleeve: sl.id })
+                                  }
+                                  className={`py-2.5 px-4 rounded-xl font-mono text-xs font-bold transition-all border flex items-center justify-center gap-2 ${
+                                    (editProductForm.sleeve || "Half sleeve") === sl.id
+                                      ? "border-amber-400 bg-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                                      : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
+                                  }`}
+                                >
+                                  <span>{sl.label}</span>
+                                  {(editProductForm.sleeve || "Half sleeve") === sl.id && (
+                                    <Check className="h-3.5 w-3.5 stroke-[3]" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           </div>
 
                           <div>
@@ -1617,35 +1664,59 @@ export default function AdminPage() {
                         />
                       </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] uppercase text-zinc-400 mb-1">
-                          Image Asset Path or Preset
+                      {/* Sleeve Selection in Add Kit Modal */}
+                      <div>
+                        <label className="block text-[10px] uppercase text-amber-400 font-bold mb-1">
+                          Sleeve Type *
                         </label>
-                        <div className="flex gap-2">
-                          <select
-                            value=""
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setNewKitForm({ ...newKitForm, image: e.target.value });
-                              }
-                            }}
-                            className="w-1/2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
-                          >
-                            <option value="">-- Choose 3D Preset --</option>
-                            {AVAILABLE_3D_PRESETS.map((p) => (
-                              <option key={p.path} value={p.path}>
-                                {p.name}
-                              </option>
-                            ))}
-                          </select>
+                        <select
+                          value={newKitForm.sleeve}
+                          onChange={(e) =>
+                            setNewKitForm({ ...newKitForm, sleeve: e.target.value })
+                          }
+                          className="w-full rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                        >
+                          <option value="Half sleeve">Half sleeve (Standard)</option>
+                          <option value="Full sleeve">Full sleeve (Long Sleeve)</option>
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2 space-y-2">
+                        <label className="block text-[10px] uppercase text-zinc-400">
+                          Kit Image Photo / Render *
+                        </label>
+                        <div className="flex flex-col sm:flex-row gap-3 items-center">
+                          <div className="relative h-16 w-14 rounded-xl overflow-hidden bg-zinc-900 border border-white/15 flex-shrink-0 flex items-center justify-center">
+                            {newKitForm.image ? (
+                              <Image src={newKitForm.image} alt="Preview" fill className="object-cover" />
+                            ) : (
+                              <ImageIcon className="h-6 w-6 text-zinc-600" />
+                            )}
+                          </div>
+
+                          <label className="flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 py-2.5 px-4 text-amber-300 font-mono text-xs font-bold cursor-pointer transition-colors flex-shrink-0">
+                            <Upload className="h-4 w-4" />
+                            <span>{uploadingImage ? "UPLOADING..." : "UPLOAD PHOTO FROM DEVICE"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingImage}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, "new");
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+
                           <input
                             type="text"
                             value={newKitForm.image}
                             onChange={(e) =>
                               setNewKitForm({ ...newKitForm, image: e.target.value })
                             }
-                            placeholder="/jerseys_3d/... or https://..."
-                            className="w-1/2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
+                            placeholder="/jerseys_3d/... or /uploads/..."
+                            className="flex-1 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-white focus:border-amber-400 focus:outline-none"
                           />
                         </div>
                       </div>
@@ -1744,6 +1815,9 @@ export default function AdminPage() {
                               <span className="font-mono text-[10px] text-amber-400 font-bold">{p.code}</span>
                               <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[9px] text-zinc-400">
                                 {p.league}
+                              </span>
+                              <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[9px] text-amber-300/90 font-bold">
+                                {p.sleeve || "Half sleeve"}
                               </span>
                               {p.isFeatured && (
                                 <span className="rounded bg-amber-500/20 text-amber-300 text-[9px] font-mono px-1.5 py-0.5 font-bold flex items-center gap-1">

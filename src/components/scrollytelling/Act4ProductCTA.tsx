@@ -218,10 +218,15 @@ export function Act4ProductCTA({
               {/* Top Card Badge & Edition */}
               <div className="flex items-center justify-between font-mono text-[10px] text-zinc-400 pb-3 border-b border-white/5">
                 <span className="text-amber-400 font-bold">{jersey.code}</span>
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  IN STOCK
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-zinc-300">
+                    {jersey.sleeve || "Half sleeve"}
+                  </span>
+                  <span className="text-emerald-400 flex items-center gap-1 text-[9px]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    IN STOCK
+                  </span>
+                </div>
               </div>
 
               {/* Real Product Image with Hover Zoom */}

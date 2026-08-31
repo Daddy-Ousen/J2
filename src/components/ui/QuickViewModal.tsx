@@ -128,6 +128,14 @@ export function QuickViewModal({
                 <span>Material Architecture</span>
               </div>
               <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="border-l-2 border-amber-500/30 pl-2.5">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-zinc-400">
+                    SLEEVE
+                  </div>
+                  <div className="text-xs font-medium text-zinc-200 mt-0.5">
+                    {jersey.sleeve || "Half sleeve"}
+                  </div>
+                </div>
                 {jersey.specs.map((spec) => (
                   <div key={spec.label} className="border-l-2 border-amber-500/30 pl-2.5">
                     <div className="font-mono text-[9px] uppercase tracking-wider text-zinc-400">

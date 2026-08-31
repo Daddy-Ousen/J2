@@ -13,6 +13,7 @@ export interface JerseyProduct {
   weightGsm: number;
   fabric: string;
   badgeType: string;
+  sleeve?: "Full sleeve" | "Half sleeve" | string;
   story: string;
   specs: {
     label: string;
