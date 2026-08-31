@@ -300,17 +300,8 @@ export function Act3JerseyMoment({ products, onInspectHeroKit }: Act3JerseyMomen
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="relative z-20 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-mono text-zinc-400">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-500 font-bold">03</span>
-            <span className="uppercase tracking-widest">Camera Push-In Completed</span>
-          </div>
-
-          <div className="text-[10px] tracking-widest text-zinc-400 uppercase">
-            {hasFlashed ? "TRANSCENDENCE UNLOCKED" : "SCROLL TO PEAK"}
-          </div>
-        </div>
+        {/* Bottom Subtle Divider */}
+        <div className="relative z-20 border-t border-white/10 pt-2" />
       </div>
     </section>
   );

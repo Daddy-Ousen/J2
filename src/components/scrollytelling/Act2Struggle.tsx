@@ -210,11 +210,6 @@ export function Act2Struggle() {
             <span className="text-zinc-600">//</span>
             <span className="text-white uppercase font-bold">THE CRUCIBLE</span>
           </div>
-
-          <div className="hidden sm:flex items-center gap-3 font-mono text-[11px] text-zinc-400">
-            <span>COLOR GRADE: COLD → EMBER</span>
-            <div className="h-2 w-16 rounded-full bg-gradient-to-r from-slate-600 via-zinc-400 to-amber-500" />
-          </div>
         </div>
 
         {/* Center Beat Stage (Relative wrapper for crossfading absolute beats) */}
@@ -277,19 +272,8 @@ export function Act2Struggle() {
           </div>
         </div>
 
-        {/* Bottom Section Status Bar */}
+        {/* Bottom Section Progress Bar */}
         <div className="relative z-10 flex flex-col gap-2 border-t border-white/10 pt-4">
-          <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-500 font-bold">02</span>
-              <span className="uppercase tracking-widest">Internal Metamorphosis</span>
-            </div>
-            <div className="text-[10px] tracking-widest text-zinc-400 uppercase">
-              SCROLL THROUGH THE CRUCIBLE
-            </div>
-          </div>
-
-          {/* Sub-section progress tracker bar */}
           <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden">
             <div
               ref={indicatorRef}

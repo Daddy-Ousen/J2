@@ -167,12 +167,7 @@ export function Act1Origin() {
       </div>
 
       {/* Bottom Scroll Cue */}
-      <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-mono text-zinc-400">
-        <div className="flex items-center gap-2">
-          <span className="text-amber-500 font-bold">01</span>
-          <span className="tracking-widest uppercase">The Genesis Point</span>
-        </div>
-
+      <div className="relative z-10 flex items-center justify-end border-t border-white/10 pt-4 text-xs font-mono text-zinc-400">
         <button
           onClick={handleScrollToNext}
           className="flex items-center gap-2 text-zinc-400 transition-colors hover:text-white"
