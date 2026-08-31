@@ -1,10 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageCircle, X, ExternalLink, ShieldCheck } from "lucide-react";
 
 export function WhatsAppSupport() {
   const [isOpen, setIsOpen] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("8801700000000");
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings?.whatsapp_number) {
+          setWhatsappNumber(data.settings.whatsapp_number.replace(/[^0-9]/g, ""));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const cleanNumber = whatsappNumber.startsWith("88") ? whatsappNumber : `88${whatsappNumber}`;
+  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent("Hello Jersey Verse, I need assistance with matchday jersey orders / custom printing.")}`;
 
   return (
     <div className="fixed bottom-6 right-6 z-40 font-mono">
@@ -25,11 +40,11 @@ export function WhatsAppSupport() {
           </div>
 
           <p className="text-[11px] text-zinc-300 leading-relaxed">
-            Need help with your <strong className="text-amber-400">bKash / Nagad payment</strong>, custom name & number printing, or courier status? Chat with our dispatch desk on WhatsApp.
+            Need help with your <strong className="text-amber-400">bKash / Nagad payment</strong>, custom player name & number printing, or order tracking? Chat with our dispatch desk on WhatsApp.
           </p>
 
           <a
-            href="https://wa.me/8801700000000?text=Hello%20Jersey%20verse,%20I%20need%20help%20with%20my%20order"
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black py-2.5 px-4 text-xs font-bold transition-all active:scale-98"

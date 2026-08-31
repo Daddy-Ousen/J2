@@ -2429,6 +2429,21 @@ export default function AdminPage() {
                 />
               </div>
 
+              <div>
+                <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                  Official WhatsApp Customer Support Number (e.g. 017XXXXXXXX or 88017XXXXXXXX)
+                </label>
+                <input
+                  type="text"
+                  placeholder="017XXXXXXXX"
+                  value={settings.whatsapp_number || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, whatsapp_number: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">

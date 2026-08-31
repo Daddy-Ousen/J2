@@ -57,6 +57,7 @@ export function Act4ProductCTA({
   const [emailInput, setEmailInput] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("Featured");
+  const [policyModal, setPolicyModal] = useState<"guarantee" | "privacy" | "terms" | null>(null);
 
   const availableJerseys = products && products.length > 0 ? products : JERSEYS_DATA;
 
@@ -452,9 +453,24 @@ export function Act4ProductCTA({
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 text-[11px]">
-          <span className="hover:text-zinc-300 cursor-pointer">CRAFT & REPAIR GUARANTEE</span>
-          <span className="hover:text-zinc-300 cursor-pointer">PRIVACY PROTOCOL</span>
-          <span className="hover:text-zinc-300 cursor-pointer">TERMS OF DISPATCH</span>
+          <button
+            onClick={() => setPolicyModal("guarantee")}
+            className="hover:text-amber-400 cursor-pointer transition-colors"
+          >
+            CRAFT & REPAIR GUARANTEE
+          </button>
+          <button
+            onClick={() => setPolicyModal("privacy")}
+            className="hover:text-amber-400 cursor-pointer transition-colors"
+          >
+            PRIVACY PROTOCOL
+          </button>
+          <button
+            onClick={() => setPolicyModal("terms")}
+            className="hover:text-amber-400 cursor-pointer transition-colors"
+          >
+            TERMS OF DISPATCH
+          </button>
         </div>
 
         <button
@@ -465,6 +481,88 @@ export function Act4ProductCTA({
           <ArrowUp className="h-3.5 w-3.5 text-amber-400" />
         </button>
       </footer>
+
+      {/* Official Company Policy & Guarantee Modal */}
+      {policyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 p-6 sm:p-8 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+              <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase tracking-widest">
+                <ShieldCheck className="h-4 w-4" />
+                <span>
+                  {policyModal === "guarantee" && "CRAFT & REPAIR GUARANTEE"}
+                  {policyModal === "privacy" && "OFFICIAL PRIVACY PROTOCOL"}
+                  {policyModal === "terms" && "TERMS OF DISPATCH & COURIER"}
+                </span>
+              </div>
+              <button
+                onClick={() => setPolicyModal(null)}
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 font-mono text-xs text-zinc-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+              {policyModal === "guarantee" && (
+                <>
+                  <p>
+                    <strong className="text-white">100% Authentic Player-Grade Craftsmanship:</strong> Every Jersey Verse matchday chassis features high-density micro-knit polyester, laser-cut ventilation channels, and 3D heat-pressed liquid silicone crests.
+                  </p>
+                  <p>
+                    <strong className="text-amber-400">7-Day Hassle-Free Replacement:</strong> In the unlikely event of stitching defects, misprinted numbers, or courier transit damage, we offer instant replacement within 7 days of delivery.
+                  </p>
+                  <p>
+                    <strong className="text-white">Care Protocol:</strong> To preserve silicone crests and heat-pressed player printing, machine wash cold (under 30°C) inside-out and hang dry. Do not iron directly over prints.
+                  </p>
+                </>
+              )}
+
+              {policyModal === "privacy" && (
+                <>
+                  <p>
+                    <strong className="text-white">Data Privacy Commitment:</strong> Jersey Verse collects only the delivery details (name, recipient phone, delivery address, city) and payment transaction IDs required to verify and dispatch your order.
+                  </p>
+                  <p>
+                    <strong className="text-amber-400">Zero Third-Party Sharing:</strong> We do not sell, rent, or distribute customer details to third-party advertisers. All customer records are stored securely with enterprise encrypted databases.
+                  </p>
+                  <p>
+                    <strong className="text-white">Account Security:</strong> Passwords are cryptographic-hashed (bcrypt), and payment verifications are validated directly with authorized mobile financial services.
+                  </p>
+                </>
+              )}
+
+              {policyModal === "terms" && (
+                <>
+                  <p>
+                    <strong className="text-white">Nationwide Express Dispatch:</strong> Orders confirmed before 4:00 PM are packaged with serialized authenticity tags and handed to Steadfast Courier for dispatch.
+                  </p>
+                  <p>
+                    <strong className="text-amber-400">Delivery Timelines:</strong>
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-zinc-400">
+                    <li>Inside Dhaka Metropolitan: 24 to 48 hours (৳80)</li>
+                    <li>Outside Dhaka & Suburbs: 48 to 72 hours (৳130)</li>
+                    <li>Complimentary Free Delivery on all orders over ৳3,000</li>
+                  </ul>
+                  <p>
+                    <strong className="text-white">Live Tracking:</strong> You will receive real-time consignment tracking updates via SMS and can track your order status anytime at <span className="text-amber-400">/track</span>.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
+              <button
+                onClick={() => setPolicyModal(null)}
+                className="rounded-xl bg-amber-400 px-5 py-2 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors"
+              >
+                ACKNOWLEDGED
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
