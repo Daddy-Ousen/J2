@@ -56,13 +56,16 @@ export function Act4ProductCTA({
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
   const [emailInput, setEmailInput] = useState("");
   const [subscribed, setSubscribed] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState<string>("Featured");
 
   const availableJerseys = products && products.length > 0 ? products : JERSEYS_DATA;
 
   const filteredJerseys = availableJerseys.filter((j) => {
+    if (activeCategory === "Featured") {
+      const featuredItems = availableJerseys.filter((item) => item.isFeatured);
+      return featuredItems.length > 0 ? Boolean(j.isFeatured) : true;
+    }
     if (activeCategory === "All") return true;
-    if (activeCategory === "Featured") return j.isFeatured;
     if (activeCategory === "Retro") return j.league === "Retro" || j.id.includes("retro") || j.name.toLowerCase().includes("retro");
     if (activeCategory === "International") return j.league === "International" || j.name.includes("Portugal") || j.name.includes("Argentina") || j.name.includes("Brazil");
     if (activeCategory === "Clubs") return j.league !== "Retro" && j.league !== "International";
@@ -186,8 +189,8 @@ export function Act4ProductCTA({
         {/* Category Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-white/5 font-mono text-xs">
           {[
-            { id: "All", label: `ALL MATCHDAY KITS (${availableJerseys.length})` },
             { id: "Featured", label: "★ FEATURED ON STOREFRONT" },
+            { id: "All", label: "ALL MATCHDAY KITS" },
             { id: "Clubs", label: "26/27 CLUBS" },
             { id: "Retro", label: "LEGENDARY RETRO VAULT" },
           ].map((cat) => (
@@ -348,7 +351,7 @@ export function Act4ProductCTA({
           href="/shop"
           className="inline-flex items-center gap-3 rounded-full border border-amber-500/40 bg-zinc-900/90 px-8 py-4 font-mono text-xs font-bold uppercase tracking-widest text-white shadow-[0_0_30px_rgba(245,158,11,0.2)] hover:border-amber-400 hover:bg-amber-400 hover:text-black transition-all group"
         >
-          <span>EXPLORE ALL 34 IN-STOCK MATCHDAY KITS</span>
+          <span>SHOW ALL IN-STOCK MATCHDAY KITS</span>
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </a>
       </div>
