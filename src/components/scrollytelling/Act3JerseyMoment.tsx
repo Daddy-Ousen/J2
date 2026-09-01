@@ -87,15 +87,15 @@ export function Act3JerseyMoment({ products, onInspectHeroKit }: Act3JerseyMomen
 
       let flashTriggered = false;
 
-      // Pinned push-in timeline
+      // Pinned push-in timeline with streamlined scroll distance
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: isMobile ? "+=110%" : "+=150%",
+          end: isMobile ? "+=45%" : "+=65%",
           pin: true,
           pinSpacing: true,
-          scrub: isMobile ? 0.3 : 0.8,
+          scrub: isMobile ? 0.3 : 0.5,
           anticipatePin: 1,
           onUpdate: (self) => {
             // Trigger peak flash and screen shake once when crossing 82% progress

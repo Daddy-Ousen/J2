@@ -2,16 +2,24 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { ChevronDown, Compass, Sparkles } from "lucide-react";
+import { ChevronDown, Compass, Sparkles, ShoppingBag, Eye, ArrowRight, ShieldCheck, Flame } from "lucide-react";
+import { JerseyProduct } from "@/types";
+import { JERSEYS_DATA } from "@/data/jerseys";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export function Act1Origin() {
+interface Act1OriginProps {
+  products?: JerseyProduct[];
+  onOpenQuickView?: (jersey: JerseyProduct) => void;
+}
+
+export function Act1Origin({ products, onOpenQuickView }: Act1OriginProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -19,12 +27,15 @@ export function Act1Origin() {
   const subtextRef = useRef<HTMLParagraphElement>(null);
   const metaRef = useRef<HTMLDivElement>(null);
 
+  const availableJerseys = products && products.length > 0 ? products : JERSEYS_DATA;
+  // Pick 4 top featured / high-profile kits for immediate hero showcase
+  const heroShowcaseKits = availableJerseys.slice(0, 4);
+
   useGSAP(
     () => {
       const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       if (isReduced) {
-        // Simple entrance for reduced motion
         gsap.to(contentRef.current, { opacity: 1, duration: 0.8 });
         return;
       }
@@ -33,8 +44,8 @@ export function Act1Origin() {
 
       // Continuous background parallax drift on scroll
       gsap.to(bgRef.current, {
-        yPercent: isMobile ? 8 : 16,
-        scale: isMobile ? 1.04 : 1.08,
+        yPercent: isMobile ? 6 : 12,
+        scale: isMobile ? 1.03 : 1.06,
         ease: "none",
         scrollTrigger: {
           trigger: containerRef.current,
@@ -75,11 +86,18 @@ export function Act1Origin() {
     }
   };
 
+  const handleScrollToShop = () => {
+    const collection = document.getElementById("act-collection");
+    if (collection) {
+      collection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section
       id="act-origin"
       ref={containerRef}
-      className="relative min-h-[100dvh] w-full overflow-hidden bg-zinc-950 text-white flex flex-col justify-between pt-24 pb-12 px-6 sm:px-12 lg:px-20"
+      className="relative min-h-[100dvh] w-full overflow-hidden bg-zinc-950 text-white flex flex-col justify-between pt-24 pb-10 px-4 sm:px-8 lg:px-16"
     >
       {/* Background with Parallax Container */}
       <div
@@ -92,46 +110,47 @@ export function Act1Origin() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center filter brightness-[0.45] contrast-[1.15]"
+          className="object-cover object-center filter brightness-[0.38] contrast-[1.15]"
         />
         {/* Cinematic Vignette & Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-zinc-950/80" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-zinc-950/60 to-zinc-950" />
-        {/* Subtle Film Grain Noise Texture */}
         <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-repeat bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
       </div>
 
       {/* Top Metadata Strip */}
-      <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-4">
-        <div className="flex items-center gap-2 font-mono text-[11px] tracking-widest text-zinc-400">
-          <Compass className="h-3.5 w-3.5 text-amber-500" />
+      <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] tracking-widest text-zinc-400">
+          <Compass className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
           <span>52°31&apos;12&quot;N 13°24&apos;18&quot;E</span>
           <span className="hidden sm:inline text-zinc-600">//</span>
-          <span className="hidden sm:inline text-zinc-400">DAWN TRANSCENDENCE</span>
+          <span className="hidden sm:inline text-zinc-400">DHAKA ATELIER</span>
         </div>
 
-        <div className="flex items-center gap-3 font-mono text-[11px] tracking-widest">
-          <span className="inline-flex items-center gap-1.5 text-amber-400/90">
+        <div className="flex items-center gap-3 font-mono text-[10px] sm:text-[11px] tracking-widest">
+          <span className="inline-flex items-center gap-1.5 text-amber-400/90 font-bold">
             <Sparkles className="h-3 w-3" />
-            ACT I // ORIGIN
+            26 IN-STOCK KITS
           </span>
-          <span className="text-zinc-400">|</span>
-          <span className="text-zinc-400">GENESIS 2026</span>
+          <span className="text-zinc-500">|</span>
+          <span className="text-zinc-400">2026 MATCHDAY</span>
         </div>
       </div>
 
-      {/* Main Narrative Hero Content */}
+      {/* Main Narrative & Instant Store Hero Content */}
       <div
         ref={contentRef}
-        className="relative z-10 my-auto max-w-4xl space-y-8 pt-8 pb-12"
+        className="relative z-10 my-auto max-w-5xl space-y-6 pt-4 pb-6"
       >
-        <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-amber-400 backdrop-blur-sm">
-          Where Belief Starts
+        {/* Immediate Storefront & Craftsmanship Identifier */}
+        <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-amber-400 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+          <Flame className="h-3.5 w-3.5 text-amber-400" />
+          <span className="font-bold">Official Matchday Football Jerseys • Player-Grade Chassis</span>
         </div>
 
         <h1
           ref={headlineRef}
-          className="text-4xl font-extrabold tracking-tighter text-zinc-100 sm:text-6xl md:text-7xl lg:text-8xl leading-[0.98]"
+          className="text-3xl font-extrabold tracking-tighter text-zinc-100 sm:text-5xl md:text-6xl lg:text-7xl leading-[1.02]"
         >
           Before the lights,
           <br />
@@ -142,35 +161,98 @@ export function Act1Origin() {
 
         <p
           ref={subtextRef}
-          className="max-w-2xl text-base font-light leading-relaxed text-zinc-300 sm:text-lg md:text-xl"
+          className="max-w-2xl text-sm sm:text-base font-light leading-relaxed text-zinc-300"
         >
-          A jersey is never just synthetic thread. It is a silent contract made in the mirror
-          before anyone is watching. An oath to carry every ounce of doubt until it is forged into
-          unshakable resolve.
+          A jersey is never just synthetic thread. It is a silent contract made before the match. Authentic player-issue micro-knit fabric, 3D liquid silicone crests, and precision heat-press customization.
         </p>
 
-        {/* Action / Interaction Trigger */}
-        <div ref={metaRef} className="flex flex-wrap items-center gap-4 pt-4">
+        {/* Action Buttons: Direct Shop Entry vs Cinematic Scroll */}
+        <div ref={metaRef} className="flex flex-wrap items-center gap-3 pt-2">
+          {/* High-Converting Primary Shop Button */}
           <button
-            onClick={handleScrollToNext}
-            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-white px-7 py-3.5 text-xs font-mono font-bold tracking-widest text-zinc-950 transition-all duration-300 hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] active:scale-95"
+            onClick={handleScrollToShop}
+            className="group relative inline-flex items-center gap-2.5 rounded-full bg-amber-400 px-6 py-3 text-xs font-mono font-bold tracking-wider text-black transition-all duration-300 hover:bg-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] active:scale-95 shadow-md"
           >
-            <span>ENTER THE CRUCIBLE</span>
-            <ChevronDown className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" />
+            <ShoppingBag className="h-4 w-4 fill-black stroke-black" />
+            <span>EXPLORE MATCHDAY KITS (৳1,150 — ৳1,450)</span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </button>
 
-          <div className="flex items-center gap-3 font-mono text-[11px] text-zinc-400">
-            <div className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span>SCROLL TO PROGRESS NARRATIVE</span>
+          {/* Secondary Story Scroll Button */}
+          <button
+            onClick={handleScrollToNext}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-zinc-900/60 px-5 py-3 text-xs font-mono text-zinc-300 hover:text-white hover:border-amber-400 hover:bg-zinc-900 transition-all duration-300 active:scale-95 backdrop-blur-sm"
+          >
+            <span>EXPERIENCE ORIGIN STORY</span>
+            <ChevronDown className="h-3.5 w-3.5 text-amber-400" />
+          </button>
+        </div>
+
+        {/* Hero Featured In-Stock Kits Ribbon (Instant Visibility) */}
+        <div className="pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+              <Sparkles className="h-3 w-3 text-amber-400" />
+              <span>In-Stock Matchday Picks (Tap to Inspect)</span>
+            </div>
+            <Link
+              href="/shop"
+              className="font-mono text-[10px] text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
+            >
+              <span>View All 26 Kits</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          {/* Quick-Peek Grid / Ribbon */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {heroShowcaseKits.map((kit) => (
+              <div
+                key={kit.id}
+                onClick={() => onOpenQuickView?.(kit)}
+                className="group relative flex items-center gap-2.5 p-2 rounded-xl border border-white/10 bg-zinc-950/80 hover:border-amber-500/50 hover:bg-zinc-900/90 transition-all cursor-pointer backdrop-blur-md shadow-sm"
+              >
+                {/* Kit Thumbnail */}
+                <div className="relative h-12 w-10 flex-shrink-0 rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
+                  <Image
+                    src={kit.image}
+                    alt={kit.name}
+                    fill
+                    sizes="40px"
+                    className="object-cover group-hover:scale-105 transition-transform"
+                  />
+                </div>
+
+                {/* Kit Info */}
+                <div className="min-w-0 flex-1">
+                  <div className="font-sans text-[11px] font-bold text-white truncate group-hover:text-amber-300 transition-colors">
+                    {kit.club}
+                  </div>
+                  <div className="font-mono text-[10px] text-amber-400 font-bold">
+                    ৳{kit.price.toLocaleString()}
+                  </div>
+                </div>
+
+                {/* Inspect Icon */}
+                <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Eye className="h-3.5 w-3.5 text-zinc-400 group-hover:text-amber-400" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Bottom Scroll Cue */}
-      <div className="relative z-10 flex items-center justify-end border-t border-white/10 pt-4 text-xs font-mono text-zinc-400">
+      <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-3 text-xs font-mono text-zinc-400">
+        <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+          <span>Nationwide Courier Dispatch (Inside Dhaka 24-48h • Outside 48-72h)</span>
+        </div>
+
         <button
           onClick={handleScrollToNext}
-          className="flex items-center gap-2 text-zinc-400 transition-colors hover:text-white"
+          className="flex items-center gap-1.5 text-zinc-400 transition-colors hover:text-white"
           aria-label="Scroll down"
         >
           <span className="tracking-widest uppercase text-[10px]">SCROLL</span>

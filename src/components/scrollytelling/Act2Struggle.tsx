@@ -69,15 +69,17 @@ export function Act2Struggle() {
       gsap.set(beat3Ref.current, { opacity: 0, y: 30 });
       gsap.set(warmBgRef.current, { opacity: 0 });
 
-      // Main pinned timeline for 150vh scroll distance
+      const isMobile = window.innerWidth < 768;
+
+      // Main pinned timeline with shortened scroll distance for fast responsive pacing
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: pinSectionRef.current,
           start: "top top",
-          end: "+=150%",
+          end: isMobile ? "+=45%" : "+=65%",
           pin: true,
           pinSpacing: true,
-          scrub: 0.8,
+          scrub: isMobile ? 0.3 : 0.5,
           anticipatePin: 1,
         },
       });

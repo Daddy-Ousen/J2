@@ -102,8 +102,11 @@ export default function Home() {
 
       {/* Main Scrollytelling Narrative Flow */}
       <main className="relative w-full">
-        {/* ACT I: ORIGIN */}
-        <Act1Origin />
+        {/* ACT I: ORIGIN & HERO STOREFRONT */}
+        <Act1Origin
+          products={liveProducts}
+          onOpenQuickView={handleOpenQuickView}
+        />
 
         {/* ACT II: THE CRUCIBLE / STRUGGLE */}
         <Act2Struggle />
