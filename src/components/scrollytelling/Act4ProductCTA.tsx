@@ -377,19 +377,17 @@ export function Act4ProductCTA({
             </div>
 
             <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-              We do not manufacture sportswear for spectators.
+              We do not settle for ordinary replica kits.
             </h3>
 
             <p className="text-sm sm:text-base leading-relaxed text-zinc-300 font-light">
-              Every seam, every millimeter of engineered weave, and every liquid-silicone crest is
-              curated for the solitary competitor who steps across the white line when everything is
-              at stake. When you pull on a <strong className="text-white">Jersey verse</strong> chassis, you do not simply play. You declare who you are.
+              Directly imported from reputed international manufacturers and licensed global suppliers, every matchday chassis is rigorously inspected to meet true athletic standards — featuring authentic micro-knit breathability, 3D liquid-silicone crests, and commercial-grade custom heat-pressed player printing.
             </p>
 
             <div className="flex items-center gap-6 font-mono text-xs text-zinc-400 pt-2">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-amber-500" />
-                <span>GLOBAL COURIER DISPATCH</span>
+                <span>DIRECT GLOBAL IMPORT</span>
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-amber-500" />
@@ -421,17 +419,17 @@ export function Act4ProductCTA({
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-4 font-mono text-xs font-bold tracking-wider text-black transition-all hover:brightness-110 active:scale-98"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-amber-300 hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] active:scale-[0.98]"
               >
                 {subscribed ? (
                   <>
-                    <Check className="h-4 w-4 stroke-[3]" />
-                    <span>INVITATION KEY RESERVED</span>
+                    <Check className="h-4 w-4" />
+                    <span>SYNDICATE ACCESS GRANTED</span>
                   </>
                 ) : (
                   <>
+                    <Send className="h-4 w-4" />
                     <span>REQUEST ACCESS KEY</span>
-                    <Send className="h-3.5 w-3.5" />
                   </>
                 )}
               </button>
@@ -456,7 +454,7 @@ export function Act4ProductCTA({
             onClick={() => setPolicyModal("guarantee")}
             className="hover:text-amber-400 cursor-pointer transition-colors"
           >
-            CRAFT & REPAIR GUARANTEE
+            AUTHENTICITY & QUALITY GUARANTEE
           </button>
           <button
             onClick={() => setPolicyModal("privacy")}
@@ -489,7 +487,7 @@ export function Act4ProductCTA({
               <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase tracking-widest">
                 <ShieldCheck className="h-4 w-4" />
                 <span>
-                  {policyModal === "guarantee" && "CRAFT & REPAIR GUARANTEE"}
+                  {policyModal === "guarantee" && "AUTHENTICITY & QUALITY GUARANTEE"}
                   {policyModal === "privacy" && "OFFICIAL PRIVACY PROTOCOL"}
                   {policyModal === "terms" && "TERMS OF DISPATCH & COURIER"}
                 </span>
@@ -506,10 +504,10 @@ export function Act4ProductCTA({
               {policyModal === "guarantee" && (
                 <>
                   <p>
-                    <strong className="text-white">100% Authentic Player-Grade Craftsmanship:</strong> Every Jersey Verse matchday chassis features high-density micro-knit polyester, laser-cut ventilation channels, and 3D heat-pressed liquid silicone crests.
+                    <strong className="text-white">100% Authentic Player-Grade Sourcing:</strong> Every Jersey Verse matchday chassis is imported directly from reputed international manufacturers and licensed global suppliers, featuring authentic high-density micro-knit polyester, laser-cut ventilation channels, and 3D heat-pressed liquid silicone crests.
                   </p>
                   <p>
-                    <strong className="text-amber-400">7-Day Hassle-Free Replacement:</strong> In the unlikely event of stitching defects, misprinted numbers, or courier transit damage, we offer instant replacement within 7 days of delivery.
+                    <strong className="text-amber-400">7-Day Quality Replacement:</strong> In the unlikely event of factory stitching defects, misprinted numbers, or courier transit damage, we offer instant replacement within 7 days of delivery.
                   </p>
                   <p>
                     <strong className="text-white">Care Protocol:</strong> To preserve silicone crests and heat-pressed player printing, machine wash cold (under 30°C) inside-out and hang dry. Do not iron directly over prints.

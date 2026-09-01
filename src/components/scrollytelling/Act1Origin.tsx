@@ -122,9 +122,9 @@ export function Act1Origin({ products, onOpenQuickView }: Act1OriginProps) {
       <div className="relative z-10 flex items-center justify-between border-b border-white/10 pb-3">
         <div className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] tracking-widest text-zinc-400">
           <Compass className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-          <span>52°31&apos;12&quot;N 13°24&apos;18&quot;E</span>
+          <span>DIRECT GLOBAL IMPORT</span>
           <span className="hidden sm:inline text-zinc-600">//</span>
-          <span className="hidden sm:inline text-zinc-400">DHAKA ATELIER</span>
+          <span className="hidden sm:inline text-zinc-400">DHAKA CUSTOM PRINTING</span>
         </div>
 
         <div className="flex items-center gap-3 font-mono text-[10px] sm:text-[11px] tracking-widest">
@@ -145,7 +145,7 @@ export function Act1Origin({ products, onOpenQuickView }: Act1OriginProps) {
         {/* Immediate Storefront & Craftsmanship Identifier */}
         <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-amber-400 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.15)]">
           <Flame className="h-3.5 w-3.5 text-amber-400" />
-          <span className="font-bold">Official Matchday Football Jerseys • Player-Grade Chassis</span>
+          <span className="font-bold">Imported From Reputed Global Manufacturers • Custom Heat-Press</span>
         </div>
 
         <h1
@@ -163,7 +163,7 @@ export function Act1Origin({ products, onOpenQuickView }: Act1OriginProps) {
           ref={subtextRef}
           className="max-w-2xl text-sm sm:text-base font-light leading-relaxed text-zinc-300"
         >
-          A jersey is never just synthetic thread. It is a silent contract made before the match. Authentic player-issue micro-knit fabric, 3D liquid silicone crests, and precision heat-press customization.
+          Directly imported from reputed international manufacturers and licensed suppliers. Authentic player-grade micro-knit chassis, 3D liquid silicone crests, and commercial heat-pressed name & number customization.
         </p>
 
         {/* Action Buttons: Direct Shop Entry vs Cinematic Scroll */}

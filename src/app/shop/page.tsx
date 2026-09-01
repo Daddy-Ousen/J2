@@ -443,7 +443,7 @@ export default function ShopPage() {
               onClick={() => setPolicyModal("guarantee")}
               className="hover:text-amber-400 cursor-pointer transition-colors"
             >
-              CRAFT & REPAIR GUARANTEE
+              AUTHENTICITY & QUALITY GUARANTEE
             </button>
             <button
               onClick={() => setPolicyModal("privacy")}
@@ -469,7 +469,7 @@ export default function ShopPage() {
               <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase tracking-widest">
                 <ShieldCheck className="h-4 w-4" />
                 <span>
-                  {policyModal === "guarantee" && "CRAFT & REPAIR GUARANTEE"}
+                  {policyModal === "guarantee" && "AUTHENTICITY & QUALITY GUARANTEE"}
                   {policyModal === "privacy" && "OFFICIAL PRIVACY PROTOCOL"}
                   {policyModal === "terms" && "TERMS OF DISPATCH & COURIER"}
                 </span>
@@ -486,10 +486,10 @@ export default function ShopPage() {
               {policyModal === "guarantee" && (
                 <>
                   <p>
-                    <strong className="text-white">100% Authentic Player-Grade Craftsmanship:</strong> Every Jersey Verse matchday chassis features high-density micro-knit polyester, laser-cut ventilation channels, and 3D heat-pressed liquid silicone crests.
+                    <strong className="text-white">100% Authentic Player-Grade Sourcing:</strong> Every Jersey Verse matchday chassis is imported directly from reputed international manufacturers and licensed global suppliers, featuring authentic high-density micro-knit polyester, laser-cut ventilation channels, and 3D heat-pressed liquid silicone crests.
                   </p>
                   <p>
-                    <strong className="text-amber-400">7-Day Hassle-Free Replacement:</strong> In the unlikely event of stitching defects, misprinted numbers, or courier transit damage, we offer instant replacement within 7 days of delivery.
+                    <strong className="text-amber-400">7-Day Quality Replacement:</strong> In the unlikely event of factory stitching defects, misprinted numbers, or courier transit damage, we offer instant replacement within 7 days of delivery.
                   </p>
                   <p>
                     <strong className="text-white">Care Protocol:</strong> To preserve silicone crests and heat-pressed player printing, machine wash cold (under 30°C) inside-out and hang dry. Do not iron directly over prints.

@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Jersey verse",
   },
   description:
-    "Official matchday kits & bespoke atelier chassis. Authentic player-grade fabrics, liquid 3D crests, and custom name/number heat-press engineering.",
+    "Direct international import of authentic player-grade matchday football kits from reputed manufacturers. Official 3D silicone crests, micro-knit fabrics, and custom player name/number heat-press.",
   keywords: [
     "Jersey verse",
     "Jerseyverse Bangladesh",
