@@ -19,7 +19,9 @@ model User {
   city         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  orders       Order[]
+  orders         Order[]
+  fantasyTeams   FantasyTeam[]
+  fantasyRewards FantasyReward[]
 }
 
 model Product {
@@ -98,5 +100,114 @@ model Setting {
   id    String @id @default(cuid())
   key   String @unique
   value String
+}
+
+model FantasyPlayer {
+  id                String         @id @default(cuid())
+  name              String
+  shortName         String
+  club              String
+  position          String         // "GK" | "DEF" | "MID" | "FWD"
+  price             Float          // e.g. 12.5 in millions
+  form              Float          @default(5.0)
+  totalPoints       Int            @default(0)
+  eventPoints       Int            @default(0)
+  selectedByPercent Float          @default(10.0)
+  goals             Int            @default(0)
+  assists           Int            @default(0)
+  cleanSheets       Int            @default(0)
+  yellowCards       Int            @default(0)
+  redCards          Int            @default(0)
+  saves             Int            @default(0)
+  image             String?
+  jerseyColor       String         @default("#f59e0b")
+  status            String         @default("AVAILABLE") // "AVAILABLE" | "INJURED" | "SUSPENDED"
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  picks             FantasyPick[]
+}
+
+model Gameweek {
+  id         String   @id @default(cuid())
+  number     Int      @unique
+  name       String   // e.g. "Matchday 1"
+  deadline   DateTime
+  isCurrent  Boolean  @default(false)
+  isFinished Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model FantasyTeam {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String            // e.g. "Dhaka Galacticos"
+  totalPoints   Int               @default(0)
+  eventPoints   Int               @default(0)
+  overallRank   Int               @default(1)
+  bank          Float             @default(0.0) // Remaining budget in millions
+  freeTransfers Int               @default(1)
+  chipsUsed     String            @default("[]") // JSON string e.g. '["wildcard"]'
+  activeChip    String?           // "triple_captain" | "bench_boost" | "free_hit" | "wildcard"
+  formation     String            @default("4-3-3")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  picks         FantasyPick[]
+  transfers     FantasyTransfer[]
+}
+
+model FantasyPick {
+  id            String        @id @default(cuid())
+  teamId        String
+  team          FantasyTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        FantasyPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  positionOrder Int           // 1 to 11 for Starting XI, 12 to 15 for Substitutes bench
+  isCaptain     Boolean       @default(false)
+  isViceCaptain Boolean       @default(false)
+  multiplier    Int           @default(1) // 2 for Captain, 3 for Triple Captain
+}
+
+model FantasyLeague {
+  id        String                @id @default(cuid())
+  name      String
+  code      String                @unique // e.g. "JV-9284"
+  type      String                @default("CLASSIC") // "GLOBAL" | "PRIVATE"
+  adminId   String?
+  createdAt DateTime              @default(now())
+  members   FantasyLeagueMember[]
+}
+
+model FantasyLeagueMember {
+  id          String        @id @default(cuid())
+  leagueId    String
+  league      FantasyLeague @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teamId      String
+  teamName    String
+  managerName String
+  rank        Int           @default(1)
+  totalPoints Int           @default(0)
+  createdAt   DateTime      @default(now())
+}
+
+model FantasyTransfer {
+  id          String      @id @default(cuid())
+  teamId      String
+  team        FantasyTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerInId  String
+  playerOutId String
+  cost        Int         @default(0) // Point deduction penalty (e.g. 4 pts for extra transfer)
+  createdAt   DateTime    @default(now())
+}
+
+model FantasyReward {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String   // e.g. "Gameweek 1 Champion (৳500 Jersey Voucher)"
+  code           String   @unique // e.g. "FANTASY-GW1-9824"
+  discountAmount Int      // e.g. 500
+  isClaimed      Boolean  @default(false)
+  createdAt      DateTime @default(now())
 }
 

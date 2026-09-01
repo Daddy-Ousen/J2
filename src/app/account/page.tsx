@@ -21,6 +21,7 @@ import {
   X,
   CreditCard,
   Building,
+  Trophy,
 } from "lucide-react";
 
 export default function AccountPage() {
@@ -248,6 +249,30 @@ export default function AccountPage() {
               </div>
             </form>
           )}
+        </div>
+
+        {/* Fantasy Football Arena Banner */}
+        <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-zinc-950 to-zinc-900 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl shadow-xl">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-400 uppercase tracking-widest">
+              <Trophy className="h-4 w-4" />
+              <span>FANTASY FOOTBALL ARENA</span>
+            </div>
+            <h3 className="text-lg font-black text-white">
+              Manage Your 15-Star Matchday Squad
+            </h3>
+            <p className="text-xs text-zinc-400 font-mono">
+              Pick your Starting XI, set Captain, compete on global leaderboards, and win official jersey discount vouchers!
+            </p>
+          </div>
+
+          <Link
+            href="/fantasy"
+            className="flex items-center gap-2 rounded-xl bg-amber-400 px-5 py-3 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-all flex-shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.3)] active:scale-95"
+          >
+            <span>ENTER FANTASY ARENA</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         {/* Order History Section */}

@@ -18,6 +18,7 @@ import {
   Lock,
   MessageCircle,
   Flame,
+  Trophy,
   ChevronRight,
 } from "lucide-react";
 
@@ -110,6 +111,16 @@ export function Navbar({ cartCount = 0, onOpenCart }: NavbarProps) {
             }`}
           >
             IN-STOCK SHOP
+          </Link>
+
+          <Link
+            href="/fantasy"
+            className={`flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-mono tracking-wider transition-colors ${
+              pathname === "/fantasy" ? "text-amber-400 font-bold bg-white/10" : "text-amber-400/90 hover:text-white"
+            }`}
+          >
+            <Trophy className="h-3 w-3 text-amber-400" />
+            <span>FANTASY</span>
           </Link>
 
           <Link
@@ -223,6 +234,18 @@ export function Navbar({ cartCount = 0, onOpenCart }: NavbarProps) {
                 <span>IN-STOCK MATCHDAY KITS</span>
               </div>
               <ChevronRight className="h-4 w-4 text-amber-400" />
+            </Link>
+
+            <Link
+              href="/fantasy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-300 hover:text-amber-200 hover:border-amber-400"
+            >
+              <div className="flex items-center gap-2.5 font-bold">
+                <Trophy className="h-4 w-4 text-amber-400" />
+                <span>FANTASY FOOTBALL ARENA</span>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 text-amber-400" />
             </Link>
 
             <Link
