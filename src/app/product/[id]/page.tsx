@@ -190,7 +190,7 @@ export default function ProductDetailPage() {
 
   const calculateFinalPrice = () => {
     let base = product.price;
-    if (enableCustomPrint) base += 200;
+    if (enableCustomPrint) base += 250;
     return base;
   };
 
@@ -414,12 +414,12 @@ export default function ProductDetailPage() {
                 </span>
                 {product.originalPrice && (
                   <span className="font-mono text-sm text-zinc-500 line-through">
-                    ৳{(product.originalPrice + (enableCustomPrint ? 200 : 0)).toLocaleString()}
+                    ৳{(product.originalPrice + (enableCustomPrint ? 250 : 0)).toLocaleString()}
                   </span>
                 )}
                 {enableCustomPrint && (
                   <span className="rounded bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 font-mono text-[10px] text-amber-300">
-                    +৳200 Custom Print Included
+                    +৳250 Custom Print Included
                   </span>
                 )}
               </div>
@@ -488,7 +488,7 @@ export default function ProductDetailPage() {
                     className="h-4 w-4 rounded border-white/20 bg-zinc-900 text-amber-500 focus:ring-amber-400 accent-amber-400"
                   />
                   <span className="font-mono text-xs font-bold text-white">
-                    CUSTOM PLAYER PRINTING (+৳200)
+                    CUSTOM PLAYER PRINTING (+৳250)
                   </span>
                 </label>
                 <span className="font-mono text-[10px] text-amber-400 font-bold">

@@ -41,7 +41,7 @@ export function CartDrawer({
   );
 
   const customizationFee = items.reduce(
-    (acc, item) => (item.customConfig ? acc + 200 * item.quantity : acc),
+    (acc, item) => (item.customConfig ? acc + 250 * item.quantity : acc),
     0
   );
 
@@ -168,7 +168,7 @@ export function CartDrawer({
                     <div className="flex justify-between text-zinc-400">
                       <span>CUSTOM PRINT:</span>
                       <span className="text-amber-300 font-bold">
-                        {item.customConfig.playerName} #{item.customConfig.jerseyNumber} (+৳200)
+                        {item.customConfig.playerName} #{item.customConfig.jerseyNumber} (+৳250)
                       </span>
                     </div>
                   </div>

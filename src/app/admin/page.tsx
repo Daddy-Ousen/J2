@@ -1061,7 +1061,7 @@ export default function AdminPage() {
                                 <span className="text-zinc-500 ml-2">Size: {it.size}</span>
                                 {it.customName && (
                                   <span className="ml-2 rounded bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[9px] text-amber-300 font-bold">
-                                    Print: {it.customName} #{it.customNumber} (+৳200)
+                                    Print: {it.customName} #{it.customNumber} (+৳250)
                                   </span>
                                 )}
                               </div>
@@ -2495,7 +2495,7 @@ export default function AdminPage() {
                   </label>
                   <input
                     type="number"
-                    value={settings.custom_print_fee || "200"}
+                    value={settings.custom_print_fee || "250"}
                     onChange={(e) =>
                       setSettings({ ...settings, custom_print_fee: e.target.value })
                     }

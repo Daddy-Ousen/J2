@@ -32,13 +32,19 @@ export async function POST(request: Request) {
     // Shipping charge calculation
     const shippingFee = zone === "outside_dhaka" ? 130 : 80;
 
+    // Fetch custom print fee from settings or default to 250
+    const printFeeSetting = await prisma.setting.findUnique({
+      where: { key: "custom_print_fee" },
+    });
+    const printFee = printFeeSetting ? parseInt(printFeeSetting.value, 10) || 250 : 250;
+
     let subtotal = 0;
     let customizationFee = 0;
 
     for (const item of items) {
       subtotal += item.price * (item.quantity || 1);
       if (item.customName || item.customNumber) {
-        customizationFee += 200 * (item.quantity || 1);
+        customizationFee += printFee * (item.quantity || 1);
       }
     }
 

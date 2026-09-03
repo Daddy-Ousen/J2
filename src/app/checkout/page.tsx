@@ -84,7 +84,7 @@ export default function CheckoutPage() {
   // Calculate pricing
   const subtotal = cartItems.reduce((acc, item) => acc + item.jersey.price * item.quantity, 0);
   const customizationFee = cartItems.reduce(
-    (acc, item) => (item.customConfig ? acc + 200 * item.quantity : acc),
+    (acc, item) => (item.customConfig ? acc + 250 * item.quantity : acc),
     0
   );
 
@@ -558,7 +558,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <div className="font-mono text-xs font-bold text-amber-400">
-                        ৳{((item.jersey.price + (item.customConfig ? 200 : 0)) * item.quantity).toLocaleString()}
+                        ৳{((item.jersey.price + (item.customConfig ? 250 : 0)) * item.quantity).toLocaleString()}
                       </div>
                     </div>
                   ))}

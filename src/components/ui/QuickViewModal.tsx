@@ -75,7 +75,7 @@ export function QuickViewModal({
 
   if (!isOpen || !jersey) return null;
 
-  const currentPrice = jersey.price + (enableCustomPrint ? 200 : 0);
+  const currentPrice = jersey.price + (enableCustomPrint ? 250 : 0);
   const originalPrice = jersey.originalPrice || Math.round(jersey.price * 1.25);
 
   const getStockForSize = (size: string) => {
@@ -294,7 +294,7 @@ export function QuickViewModal({
                 )}
                 {enableCustomPrint && (
                   <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] text-amber-300 font-bold">
-                    +৳200 CUSTOM PRINT
+                    +৳250 CUSTOM PRINT
                   </span>
                 )}
               </div>
@@ -352,7 +352,7 @@ export function QuickViewModal({
                     className="h-4 w-4 rounded accent-amber-400 cursor-pointer"
                   />
                   <span className="font-mono text-xs font-bold text-white uppercase">
-                    CUSTOM PLAYER PRINTING (+৳200)
+                    CUSTOM PLAYER PRINTING (+৳250)
                   </span>
                 </div>
                 <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[9px] font-bold text-amber-300">
