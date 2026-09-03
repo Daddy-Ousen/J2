@@ -36,6 +36,9 @@ import {
   CheckSquare,
   Square,
   Filter,
+  UserPlus,
+  Key,
+  Users,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -43,17 +46,35 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Admin login form state
-  const [email, setEmail] = useState("admin@jerseyverse.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "inventory" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "inventory" | "settings" | "security">("overview");
   const [metrics, setMetrics] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loadingData, setLoadingData] = useState(false);
+
+  // Security & Admin user management state
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+
+  // Password update form
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // New admin creation form
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPass, setNewAdminPass] = useState("");
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [createAdminMsg, setCreateAdminMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Filters
   const [orderSearch, setOrderSearch] = useState("");
@@ -188,6 +209,126 @@ export default function AdminPage() {
       console.error("Dashboard data load error:", err);
     } finally {
       setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "security" && user?.role === "ADMIN") {
+      fetchAdminUsers();
+    }
+  }, [activeTab, user]);
+
+  const fetchAdminUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await res.json();
+      if (data.users) {
+        setAdminUsers(data.users);
+      }
+    } catch (e) {
+      console.error("Error fetching users:", e);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMsg(null);
+    if (newAdminPassword.length < 6) {
+      setPasswordMsg({ type: "error", text: "Password must be at least 6 characters long." });
+      return;
+    }
+    if (newAdminPassword !== confirmAdminPassword) {
+      setPasswordMsg({ type: "error", text: "Passwords do not match." });
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "change_password", newPassword: newAdminPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMsg({ type: "success", text: "Admin password successfully updated!" });
+        setNewAdminPassword("");
+        setConfirmAdminPassword("");
+      } else {
+        setPasswordMsg({ type: "error", text: data.error || "Failed to update password." });
+      }
+    } catch (e: any) {
+      setPasswordMsg({ type: "error", text: e.message || "Failed to update password." });
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateAdminMsg(null);
+    if (!newAdminName || !newAdminEmail || !newAdminPass) {
+      setCreateAdminMsg({ type: "error", text: "All fields are required." });
+      return;
+    }
+    if (newAdminPass.length < 6) {
+      setCreateAdminMsg({ type: "error", text: "Password must be at least 6 characters." });
+      return;
+    }
+
+    setCreatingAdmin(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newAdminName,
+          email: newAdminEmail,
+          password: newAdminPass,
+          role: "ADMIN",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCreateAdminMsg({ type: "success", text: `Admin account created for ${newAdminEmail}!` });
+        setNewAdminName("");
+        setNewAdminEmail("");
+        setNewAdminPass("");
+        fetchAdminUsers();
+      } else {
+        setCreateAdminMsg({ type: "error", text: data.error || "Failed to create admin." });
+      }
+    } catch (e: any) {
+      setCreateAdminMsg({ type: "error", text: e.message || "Failed to create admin." });
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, targetEmail: string, newRole: "ADMIN" | "CUSTOMER") => {
+    const confirmText = newRole === "ADMIN" 
+      ? `Are you sure you want to GRANT full Master Admin access to ${targetEmail}?`
+      : `Are you sure you want to REVOKE admin access from ${targetEmail}?`;
+
+    if (!window.confirm(confirmText)) return;
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_role", targetUserId: userId, newRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        fetchAdminUsers();
+      } else {
+        alert(data.error || "Failed to update role");
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to update role");
     }
   };
 
@@ -637,6 +778,7 @@ export default function AdminPage() {
                 <input
                   type="email"
                   required
+                  placeholder="admin@jerseyverse.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
@@ -652,7 +794,7 @@ export default function AdminPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="admin123456"
+                  placeholder="••••••••••••"
                   className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
                 />
               </div>
@@ -664,10 +806,6 @@ export default function AdminPage() {
                 ACCESS ADMIN DESK
               </button>
             </form>
-
-            <div className="mt-4 pt-4 border-t border-white/5 text-center font-mono text-[10px] text-zinc-500">
-              Default credentials: <span className="text-zinc-400">admin@jerseyverse.com / admin123456</span>
-            </div>
           </div>
         </main>
       </div>
@@ -717,6 +855,7 @@ export default function AdminPage() {
               { id: "orders", label: `Orders (${orders.length})`, icon: Package },
               { id: "inventory", label: `Pricing & Stock (${products.length})`, icon: Sliders },
               { id: "settings", label: "Payment Numbers", icon: Settings },
+              { id: "security", label: "Security & Admins", icon: ShieldCheck },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -2587,6 +2726,334 @@ export default function AdminPage() {
                 {savingSettings ? "SAVING CONFIGURATION..." : "SAVE STORE CONFIGURATION"}
               </button>
             </form>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 5: SECURITY & ADMIN PRIVILEGES */}
+        {/* ============================================================ */}
+        {activeTab === "security" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Header Description */}
+            <div className="rounded-3xl border border-white/10 bg-zinc-950/80 p-6 backdrop-blur-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-amber-400" />
+                    <h2 className="font-mono text-sm font-black uppercase tracking-widest text-white">
+                      ADMIN SECURITY & TEAM ACCESS CONTROL
+                    </h2>
+                  </div>
+                  <p className="mt-1 font-mono text-xs text-zinc-400">
+                    Update your master account password, provision new administrator accounts, or grant/revoke admin rights for registered customers.
+                  </p>
+                </div>
+
+                <button
+                  onClick={fetchAdminUsers}
+                  disabled={loadingUsers}
+                  className="flex items-center gap-2 rounded-xl border border-white/15 bg-zinc-900 px-3.5 py-2 font-mono text-xs font-bold text-zinc-300 hover:text-white hover:border-amber-400 transition-all self-start sm:self-auto"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 text-amber-400 ${loadingUsers ? "animate-spin" : ""}`} />
+                  <span>REFRESH ACCOUNTS</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Top Grid: Change Password & Create Admin */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Card 1: Change Current Admin Password */}
+              <div className="rounded-3xl border border-white/10 bg-zinc-950 p-6">
+                <div className="flex items-center gap-2.5 pb-4 border-b border-white/10 mb-5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/40 bg-zinc-900">
+                    <Key className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-xs font-bold uppercase text-white">
+                      CHANGE YOUR PASSWORD
+                    </h3>
+                    <p className="font-mono text-[10px] text-zinc-500">
+                      Logged in as <span className="text-amber-300">{user.email}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  {passwordMsg && (
+                    <div
+                      className={`p-3 rounded-xl border font-mono text-xs flex items-center gap-2 ${
+                        passwordMsg.type === "success"
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                          : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      }`}
+                    >
+                      {passwordMsg.type === "success" ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                      )}
+                      <span>{passwordMsg.text}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      New Password (Minimum 6 characters)
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newAdminPassword}
+                      onChange={(e) => setNewAdminPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmAdminPassword}
+                      onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={updatingPassword}
+                    className="w-full rounded-xl bg-amber-400 py-2.5 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2"
+                  >
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>{updatingPassword ? "UPDATING PASSWORD..." : "UPDATE ADMIN PASSWORD"}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Card 2: Create New Admin Account */}
+              <div className="rounded-3xl border border-white/10 bg-zinc-950 p-6">
+                <div className="flex items-center gap-2.5 pb-4 border-b border-white/10 mb-5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/40 bg-zinc-900">
+                    <UserPlus className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-xs font-bold uppercase text-white">
+                      CREATE NEW ADMIN ACCOUNT
+                    </h3>
+                    <p className="font-mono text-[10px] text-zinc-500">
+                      Provision a new staff / partner login with full admin rights
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateAdmin} className="space-y-4">
+                  {createAdminMsg && (
+                    <div
+                      className={`p-3 rounded-xl border font-mono text-xs flex items-center gap-2 ${
+                        createAdminMsg.type === "success"
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                          : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      }`}
+                    >
+                      {createAdminMsg.type === "success" ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                      )}
+                      <span>{createAdminMsg.text}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newAdminName}
+                      onChange={(e) => setNewAdminName(e.target.value)}
+                      placeholder="e.g. Robiul Hassan"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Admin Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      placeholder="e.g. partner@jerseyverse.com"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-zinc-400 mb-1">
+                      Password (Minimum 6 characters)
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newAdminPass}
+                      onChange={(e) => setNewAdminPass(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3.5 py-2.5 font-mono text-xs text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={creatingAdmin}
+                    className="w-full rounded-xl bg-amber-400 py-2.5 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-all shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span>{creatingAdmin ? "CREATING ACCOUNT..." : "CREATE ADMIN ACCOUNT"}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Bottom Table: Users & Role Management */}
+            <div className="rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10 mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-zinc-900">
+                    <Users className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-xs font-bold uppercase text-white">
+                      REGISTERED ACCOUNTS & ROLE PERMISSIONS ({adminUsers.length})
+                    </h3>
+                    <p className="font-mono text-[10px] text-zinc-500">
+                      Grant instant admin access to any registered customer or revoke access
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center w-full sm:w-64">
+                  <input
+                    type="text"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Search by name or email..."
+                    className="w-full rounded-xl border border-white/15 bg-zinc-900/90 py-2 pl-9 pr-3 font-mono text-xs text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none"
+                  />
+                  <Search className="absolute left-3 h-3.5 w-3.5 text-zinc-400" />
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-mono text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-zinc-500">
+                      <th className="pb-3 pl-2">User / Account</th>
+                      <th className="pb-3">Role</th>
+                      <th className="pb-3">Registered On</th>
+                      <th className="pb-3 text-right pr-2">Access Control</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {loadingUsers ? (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-zinc-500">
+                          Loading accounts...
+                        </td>
+                      </tr>
+                    ) : adminUsers.filter((u) => {
+                        if (!userSearch) return true;
+                        const s = userSearch.toLowerCase();
+                        return u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
+                      }).length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-zinc-500">
+                          No users matching &quot;{userSearch}&quot;
+                        </td>
+                      </tr>
+                    ) : (
+                      adminUsers
+                        .filter((u) => {
+                          if (!userSearch) return true;
+                          const s = userSearch.toLowerCase();
+                          return u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
+                        })
+                        .map((u) => {
+                          const isAdmin = u.role === "ADMIN";
+                          const isCurrentUser = u.id === user.id;
+
+                          return (
+                            <tr key={u.id} className="hover:bg-zinc-900/40 transition-colors">
+                              <td className="py-3.5 pl-2">
+                                <div className="font-bold text-white flex items-center gap-1.5">
+                                  <span>{u.name}</span>
+                                  {isCurrentUser && (
+                                    <span className="rounded-full bg-amber-400/10 border border-amber-400/30 px-1.5 py-0.2 font-mono text-[9px] text-amber-300">
+                                      YOU
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-zinc-400">{u.email}</div>
+                              </td>
+                              <td className="py-3.5">
+                                {isAdmin ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[10px] font-bold text-amber-300">
+                                    <ShieldCheck className="h-3 w-3 text-amber-400" />
+                                    <span>ADMIN</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center rounded-full bg-zinc-800 border border-white/10 px-2.5 py-0.5 text-[10px] text-zinc-400">
+                                    CUSTOMER
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3.5 text-zinc-400 text-[11px]">
+                                {new Date(u.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </td>
+                              <td className="py-3.5 text-right pr-2">
+                                {isAdmin ? (
+                                  <button
+                                    onClick={() => handleUpdateRole(u.id, u.email, "CUSTOMER")}
+                                    disabled={isCurrentUser}
+                                    className={`rounded-xl border px-3 py-1 text-[10px] font-bold transition-all ${
+                                      isCurrentUser
+                                        ? "border-zinc-800 text-zinc-600 cursor-not-allowed"
+                                        : "border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+                                    }`}
+                                    title={isCurrentUser ? "You cannot revoke your own admin rights" : "Demote to customer"}
+                                  >
+                                    REVOKE ADMIN
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUpdateRole(u.id, u.email, "ADMIN")}
+                                    className="rounded-xl border border-amber-500/40 bg-amber-500/20 px-3 py-1 text-[10px] font-bold text-amber-300 hover:bg-amber-500/30 transition-all shadow-sm"
+                                  >
+                                    GRANT ADMIN ACCESS
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </main>
