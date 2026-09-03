@@ -47,6 +47,7 @@ export default function ShopPage() {
   const [inspectProduct, setInspectProduct] = useState<JerseyProduct | null>(null);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [wishlistOnly, setWishlistOnly] = useState(false);
   const [policyModal, setPolicyModal] = useState<"guarantee" | "privacy" | "terms" | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,13 @@ export default function ShopPage() {
       const savedWish = localStorage.getItem("jv_wishlist_ids");
       if (savedWish) setWishlistIds(JSON.parse(savedWish));
     } catch {}
+
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("filter") === "wishlist") {
+        setWishlistOnly(true);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -266,6 +274,24 @@ export default function ShopPage() {
 
       {/* Main Catalog Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {wishlistOnly && (
+          <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-950 p-4">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-300">
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>SAVED BOOKMARKS ({wishlistIds.length} KITS)</span>
+            </div>
+            <button
+              onClick={() => {
+                setWishlistOnly(false);
+                window.history.replaceState({}, "", "/shop");
+              }}
+              className="rounded-xl border border-white/20 bg-zinc-800 px-3 py-1 text-[11px] font-mono font-bold text-white hover:border-amber-400 hover:text-amber-300 transition-colors"
+            >
+              VIEW ALL MATCHDAY KITS
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -275,27 +301,33 @@ export default function ShopPage() {
               />
             ))}
           </div>
-        ) : products.length === 0 ? (
+        ) : (wishlistOnly ? products.filter((p) => wishlistIds.includes(p.id)) : products).length === 0 ? (
           <div className="rounded-3xl border border-white/10 bg-zinc-950 p-16 text-center">
             <ShieldCheck className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white">No Matchday Armor Found</h2>
+            <h2 className="text-xl font-bold text-white">
+              {wishlistOnly ? "No Bookmarked Kits Yet" : "No Matchday Armor Found"}
+            </h2>
             <p className="mt-2 text-sm text-zinc-400 font-mono">
-              Try adjusting your search criteria or resetting league and size filters.
+              {wishlistOnly
+                ? "Tap the heart icon on any matchday jersey to save it to your bookmarks."
+                : "Try adjusting your search criteria or resetting league and size filters."}
             </p>
             <button
               onClick={() => {
+                setWishlistOnly(false);
                 setSelectedLeague("All");
                 setSelectedSize("All");
                 setSearch("");
+                window.history.replaceState({}, "", "/shop");
               }}
               className="mt-6 rounded-xl bg-amber-400 px-6 py-2.5 font-mono text-xs font-bold text-black hover:bg-amber-300 transition-colors"
             >
-              RESET ALL FILTERS
+              EXPLORE ALL KITS
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((p) => {
+            {(wishlistOnly ? products.filter((p) => wishlistIds.includes(p.id)) : products).map((p) => {
               const isWishlisted = wishlistIds.includes(p.id);
 
               return (

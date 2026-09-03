@@ -58,16 +58,16 @@ export function AudioToggle() {
           )}
         </button>
 
-        {/* Track Title Display (Hidden on very small mobile, visible on sm+) */}
+        {/* Track Title Display (Visible on both mobile & desktop) */}
         <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="hidden sm:flex flex-col cursor-pointer max-w-[150px] truncate px-1 text-left select-none"
+          className="flex flex-col cursor-pointer max-w-[120px] xs:max-w-[150px] sm:max-w-[180px] truncate px-1.5 text-left select-none"
         >
-          <div className="flex items-center gap-1.5 font-bold text-white truncate text-[11px]">
+          <div className="flex items-center gap-1.5 font-bold text-white truncate text-[10px] sm:text-[11px]">
             <Disc className={`h-3 w-3 flex-shrink-0 text-amber-400 ${isPlaying ? "animate-spin" : ""}`} />
             <span className="truncate">{currentTrack.title}</span>
           </div>
-          <span className="text-[9px] text-zinc-400 truncate">
+          <span className="text-[8px] sm:text-[9px] text-zinc-400 truncate">
             {currentTrack.subtitle}
           </span>
         </div>
@@ -75,7 +75,7 @@ export function AudioToggle() {
         {/* Random Next Track Button */}
         <button
           onClick={handleNextTrack}
-          className="hidden sm:flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 hover:text-amber-300 hover:bg-white/5 transition-colors active:scale-90"
           title="Random Next Track"
         >
           <SkipForward className="h-3.5 w-3.5" />
@@ -97,7 +97,7 @@ export function AudioToggle() {
 
       {/* Expanded Playlist & Volume Modal */}
       {isExpanded && (
-        <div className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-white/15 bg-zinc-950/98 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
+        <div className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 top-12 z-50 w-[92vw] max-w-xs sm:w-80 rounded-2xl border border-white/15 bg-zinc-950/98 p-4 backdrop-blur-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-white">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
             <div className="flex items-center gap-2 font-mono text-xs font-bold text-amber-400">
               <Music className="h-4 w-4" />

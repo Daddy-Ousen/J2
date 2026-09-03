@@ -22,7 +22,7 @@ export function WhatsAppSupport() {
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent("Hello Jersey Verse, I need assistance with matchday jersey orders / custom printing.")}`;
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 font-mono">
+    <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 font-mono">
       {/* Expanded Quick Chat Box */}
       {isOpen && (
         <div className="mb-3 w-80 rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
