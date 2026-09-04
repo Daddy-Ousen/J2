@@ -9,6 +9,7 @@ import { Act3JerseyMoment } from "@/components/scrollytelling/Act3JerseyMoment";
 import { Act4ProductCTA } from "@/components/scrollytelling/Act4ProductCTA";
 import { QuickViewModal } from "@/components/ui/QuickViewModal";
 import { CartDrawer, CartItem } from "@/components/ui/CartDrawer";
+import { MatchdayLoadingScreen } from "@/components/ui/MatchdayLoadingScreen";
 import { JERSEYS_DATA } from "@/data/jerseys";
 import { JerseyProduct, CustomKitConfig } from "@/types";
 import { Check, ShoppingBag, Sparkles } from "lucide-react";
@@ -91,6 +92,9 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full bg-[#070709] text-zinc-100 font-sans selection:bg-amber-500 selection:text-black">
+      {/* Theme-Justified Background Asset & Music Preloader */}
+      <MatchdayLoadingScreen />
+
       {/* Top Scrollytelling Progress Bar */}
       <ScrollProgressBar />
 

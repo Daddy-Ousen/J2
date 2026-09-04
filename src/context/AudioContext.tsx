@@ -63,6 +63,7 @@ interface AudioContextType {
   waitingMobileInteraction: boolean;
   playlist: Track[];
   togglePlay: () => void;
+  unlockAndPlay: () => void;
   pickNextRandomTrack: () => void;
   selectTrack: (index: number) => void;
   setVolume: (volume: number) => void;
@@ -126,6 +127,23 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         });
     }
   }, [isPlaying]);
+
+  const unlockAndPlay = useCallback(() => {
+    if (!audioRef.current) return;
+    audioRef.current.volume = volume;
+    const playPromise = audioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+          unlockedRef.current = true;
+          setWaitingMobileInteraction(false);
+        })
+        .catch((err) => {
+          console.warn("User triggered audio play error:", err);
+        });
+    }
+  }, [volume]);
 
   // Initialize audio element once on root layout mount
   useEffect(() => {
@@ -231,6 +249,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         waitingMobileInteraction,
         playlist: MATCHDAY_PLAYLIST,
         togglePlay,
+        unlockAndPlay,
         pickNextRandomTrack,
         selectTrack,
         setVolume,
